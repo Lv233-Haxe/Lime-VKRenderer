@@ -46,9 +46,9 @@ Installation
 ============
 First, install the latest version of Haxe (http://www.haxe.org/download).
 
-Install Lime-VKRenderer from Haxelib and run Lime's setup command:
-haxelib install Lime-VKRenderer
-haxelib run Lime-VKRenderer setup
+Install lime from Haxelib and run Lime's setup command:
+haxelib install lime
+haxelib run lime setup
 
 Development Builds
 ==================
