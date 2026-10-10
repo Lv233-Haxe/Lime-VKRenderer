@@ -3,8 +3,8 @@
 	"url": "https://github.com/openfl/lime",
 	"license": "MIT",
 	"tags": [],
-	"description": "A foundational Haxe framework for cross-platform development",
-	"version": "8.4.0",
+	"description": "A foundational Haxe framework for cross-platform development,it support sdl3 new features and it supports vulkan-1.4",
+	"version": "9.1.0",
 	"releasenote": "Orientation events, gamepad rumble, display safe area, HashLink update",
 	"contributors": [
 		"singmajesty",

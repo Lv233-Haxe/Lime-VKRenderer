@@ -128,6 +128,13 @@ class Window
 	**/
 	public var onMove(default, null) = new Event<Float->Float->Void>();
 
+	/**
+		Fired when the window becomes fully occluded (covered by other windows
+		or minimized), backed by SDL_EVENT_WINDOW_OCCLUDED (new in SDL3).
+		Rendering can be skipped while occluded.
+	**/
+	public var onOccluded(default, null) = new Event<Void->Void>();
+
 	public var onRender(default, null) = new Event<RenderContext->Void>();
 	public var onRenderContextLost(default, null) = new Event<Void->Void>();
 	public var onRenderContextRestored(default, null) = new Event<RenderContext->Void>();
@@ -141,11 +148,34 @@ class Window
 	public var onShow(default, null) = new Event<Void->Void>();
 	public var onTextEdit(default, null) = new Event<String->Int->Int->Void>();
 	public var onTextInput(default, null) = new Event<String->Void>();
-	public var onDisplayScaleChange(default, null) = new Event<Void->Void>();
 	public var opacity(get, set):Float;
 	public var parameters:Dynamic;
+	public var progressState(get, set):WindowProgressState;
+	public var progressValue(get, set):Float;
 	public var resizable(get, set):Bool;
+	public var safeArea(get, null):Rectangle;
 	public var scale(get, null):Float;
+
+	/**
+		The window backdrop effect (Windows: blur behind or acrylic). The
+		window must be created with `transparent: true`, and only frame pixels
+		drawn with alpha < 1 reveal the backdrop. See `WindowBlurMode`.
+	**/
+	public var blurMode(get, set):WindowBlurMode;
+
+	/**
+		Tint applied over the backdrop effect as `0xAARRGGBB` (the alpha byte
+		controls how strongly the tint covers the blur). `0` means no tint.
+	**/
+	public var blurTint(get, set):Int;
+
+	/**
+		Confines the cursor to the given rectangle (in window coordinates) while
+		set, backed by SDL_SetWindowMouseRect (SDL 3.2+). Set to `null` to
+		release the confinement.
+	**/
+	public var mouseRect(get, set):Null<Rectangle>;
+
 	#if (!lime_doc_gen || flash || openfl)
 	public var stage(default, null):Stage;
 	#end
@@ -2582,6 +2612,26 @@ class Window
 		__backend.setIcon(image);
 	}
 
+	/**
+		Sets a custom hardware cursor from an image, backed by
+		SDL_CreateColorCursor (SDL 3.2+). Unlike the preset system cursors,
+		this supports full-color images with alpha. Pass `null` to clear the
+		custom cursor and fall back to the default arrow.
+	**/
+	public function setCursorImage(image:Image):Void
+	{
+		__backend.setCursorImage(image);
+
+		if (image != null)
+		{
+			cursor = MouseCursor.CUSTOM;
+		}
+		else if (cursor == MouseCursor.CUSTOM)
+		{
+			cursor = MouseCursor.DEFAULT;
+		}
+	}
+
 	public function toString():String
 	{
 		return "[object Window]";
@@ -2765,6 +2815,61 @@ class Window
 	{
 		__backend.setOpacity(value);
 		return value;
+	}
+
+	@:noCompletion private function get_progressState():WindowProgressState
+	{
+		return __backend.getProgressState();
+	}
+
+	@:noCompletion private function set_progressState(value:WindowProgressState):WindowProgressState
+	{
+		return __backend.setProgressState(value);
+	}
+
+	@:noCompletion private function get_progressValue():Float
+	{
+		return __backend.getProgressValue();
+	}
+
+	@:noCompletion private function set_progressValue(value:Float):Float
+	{
+		return __backend.setProgressValue(value);
+	}
+
+	@:noCompletion private function get_mouseRect():Null<Rectangle>
+	{
+		return __backend.getMouseRect();
+	}
+
+	@:noCompletion private function set_mouseRect(value:Null<Rectangle>):Null<Rectangle>
+	{
+		return __backend.setMouseRect(value);
+	}
+
+	@:noCompletion private function get_blurMode():WindowBlurMode
+	{
+		return __backend.getBlurMode();
+	}
+
+	@:noCompletion private function set_blurMode(value:WindowBlurMode):WindowBlurMode
+	{
+		return __backend.setBlurMode(value);
+	}
+
+	@:noCompletion private function get_blurTint():Int
+	{
+		return __backend.getBlurTint();
+	}
+
+	@:noCompletion private function set_blurTint(value:Int):Int
+	{
+		return __backend.setBlurTint(value);
+	}
+
+	@:noCompletion private function get_safeArea():Rectangle
+	{
+		return __backend.getSafeArea();
 	}
 
 	@:noCompletion private inline function get_resizable():Bool

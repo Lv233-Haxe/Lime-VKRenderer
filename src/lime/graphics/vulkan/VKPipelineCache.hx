@@ -42,6 +42,45 @@ class VKPipelineCache
 		return !VK.__isZero(handle);
 	}
 
+	/**
+		Merges one or more source pipeline caches into this cache.
+
+		Merging lets a cache accumulate data collected on other devices or during
+		earlier runs. All caches must belong to the same `VKDevice`; caches from a
+		different device are ignored.
+	**/
+	public function merge(sourceCaches:Array<VKPipelineCache>):Bool
+	{
+		if (sourceCaches == null || sourceCaches.length == 0)
+		{
+			return false;
+		}
+
+		var sources = new Array<Dynamic>();
+		for (cache in sourceCaches)
+		{
+			if (cache != null && cache.isValid() && cache.device == device)
+			{
+				sources.push({high: cache.handle.high, low: cache.handle.low});
+			}
+		}
+
+		if (sources.length == 0)
+		{
+			return false;
+		}
+
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_merge_pipeline_caches(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, sources);
+		}
+		#end
+
+		return false;
+	}
+
 	public function getData():Bytes
 	{
 		#if (!macro && lime_cffi && lime_vulkan)

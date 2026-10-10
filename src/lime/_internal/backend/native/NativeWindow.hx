@@ -24,6 +24,8 @@ import lime.system.JNI;
 import lime.system.System;
 import lime.ui.MouseCursor;
 import lime.ui.Window;
+import lime.ui.WindowBlurMode;
+import lime.ui.WindowProgressState;
 import lime.utils.UInt8Array;
 
 #if !lime_debug
@@ -46,6 +48,9 @@ class NativeWindow
 	private var closing:Bool;
 	private var cursor:MouseCursor;
 	private var displayMode:DisplayMode;
+	private var mouseRect:Null<Rectangle>;
+	private var blurMode:WindowBlurMode = WindowBlurMode.NONE;
+	private var blurTint:Int = 0;
 	private var frameRate:Float;
 	private var mouseLock:Bool;
 	private var parent:Window;
@@ -174,7 +179,7 @@ class NativeWindow
 				context.vulkan = new VulkanRenderContext(handle);
 				context.type = VULKAN;
 				context.version = Reflect.hasField(contextAttributes, "version")
-					&& contextAttributes.version != null ? contextAttributes.version : "";
+					&& contextAttributes.version != null ? contextAttributes.version : context.vulkan.version;
 			default:
 				useHardware = false;
 
@@ -330,6 +335,46 @@ class NativeWindow
 			#end
 		}
 		return 1.0;
+	}
+
+	public function getProgressState():WindowProgressState
+	{
+		// SDL 3.2.8+ taskbar progress state
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			return cast NativeCFFI.lime_window_get_progress_state(handle);
+			#end
+		}
+		return NONE;
+	}
+
+	public function getProgressValue():Float
+	{
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			return NativeCFFI.lime_window_get_progress_value(handle);
+			#end
+		}
+		return 0;
+	}
+
+	public function getSafeArea():Rectangle
+	{
+		// SDL 3.2+ window safe area (display cutouts, rounded corners)
+		var safeArea = new Rectangle(0, 0, parent.__width, parent.__height);
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			var data:Dynamic = NativeCFFI.lime_window_get_safe_area(handle);
+			if (data != null)
+			{
+				safeArea = new Rectangle(data.x, data.y, data.width, data.height);
+			}
+			#end
+		}
+		return safeArea;
 	}
 
 	public function getTextInputEnabled():Bool
@@ -665,6 +710,89 @@ class NativeWindow
 		{
 			#if (!macro && lime_cffi)
 			NativeCFFI.lime_window_set_opacity(handle, value);
+			#end
+		}
+	}
+
+	public function setProgressState(value:WindowProgressState):WindowProgressState
+	{
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_progress_state(handle, cast value);
+			#end
+		}
+		return value;
+	}
+
+	public function setProgressValue(value:Float):Float
+	{
+		if (value < 0) value = 0;
+		else if (value > 1) value = 1;
+
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_progress_value(handle, value);
+			#end
+		}
+		return value;
+	}
+
+	public function getMouseRect():Null<Rectangle>
+	{
+		return mouseRect;
+	}
+
+	public function setMouseRect(value:Null<Rectangle>):Null<Rectangle>
+	{
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_mouse_rect(handle, value);
+			#end
+		}
+		return mouseRect = value;
+	}
+
+	public function getBlurMode():WindowBlurMode
+	{
+		return blurMode;
+	}
+
+	public function setBlurMode(value:WindowBlurMode):WindowBlurMode
+	{
+		if (handle != null && blurMode != value)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_blur(handle, cast value, blurTint);
+			#end
+		}
+		return blurMode = value;
+	}
+
+	public function getBlurTint():Int
+	{
+		return blurTint;
+	}
+
+	public function setBlurTint(value:Int):Int
+	{
+		if (handle != null && blurTint != value && blurMode != WindowBlurMode.NONE)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_blur(handle, cast blurMode, value);
+			#end
+		}
+		return blurTint = value;
+	}
+
+	public function setCursorImage(image:Image):Void
+	{
+		if (handle != null)
+		{
+			#if (!macro && lime_cffi)
+			NativeCFFI.lime_window_set_cursor_image(handle, image == null ? null : image.buffer);
 			#end
 		}
 	}

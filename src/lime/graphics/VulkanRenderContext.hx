@@ -1,7 +1,11 @@
 package lime.graphics;
 
 import haxe.Int64;
+import lime.graphics.vulkan.VK;
+import lime.graphics.vulkan.VKApiVersion;
+import lime.graphics.vulkan.VKInstance;
 import lime.graphics.vulkan.VKRenderer;
+import lime.graphics.vulkan.VKSurface;
 import lime.math.Vector2;
 #if (!lime_doc_gen || lime_cffi)
 import lime.system.CFFI;
@@ -25,17 +29,30 @@ import lime._internal.backend.native.NativeCFFI;
 
 	- required instance extensions for the current window
 	- the current drawable size in pixels
-	- Vulkan surface creation for an existing `VkInstance`
+	- Vulkan surface creation for an existing `VKInstance`
 	- access to `vkGetInstanceProcAddr`
+	- the loader's Vulkan API version (before any instance exists)
 
-	Use `lime.graphics.vulkan.VK` and related classes for the broader Vulkan API
-	surface as it grows.
+	Everything beyond bootstrap lives in `lime.graphics.vulkan.VK` and the
+	related `VK*` classes, which cover Vulkan 1.0, 1.1 and 1.2 in full.
 **/
 @:access(lime._internal.backend.native.NativeCFFI)
 class VulkanRenderContext
 {
 	public var type(default, null):RenderContextType;
-	public var version(default, null):String;
+
+	/**
+		Vulkan API version supported by the loader, formatted as `major.minor.patch`
+		(for example `"1.2.194"`).
+
+		Resolved lazily on first read, so it costs nothing until used. Empty when
+		the loader predates `vkEnumerateInstanceVersion` (Vulkan 1.0), in which
+		case the loader is 1.0.
+	**/
+	public var version(get, never):String;
+
+	private var __version:String;
+	private var __versionQueried:Bool;
 
 	private var __windowHandle:#if (!lime_doc_gen || lime_cffi) CFFIPointer #else Dynamic #end;
 
@@ -43,33 +60,62 @@ class VulkanRenderContext
 	private function new(windowHandle:#if (!lime_doc_gen || lime_cffi) CFFIPointer #else Dynamic #end)
 	{
 		__windowHandle = windowHandle;
+		__version = "";
+		__versionQueried = false;
 		type = VULKAN;
-		version = "";
 	}
 
 	/**
-		Creates a Vulkan surface for the current window using an existing
-		`VkInstance` handle, or an object that exposes a `get()` method returning
-		that handle.
-	**/
-	public function createSurface(instance:Dynamic):Int64
-	{
-		var surfaceData:Dynamic = null;
+		Creates a managed `VKInstance` for this window.
 
-		#if (!macro && lime_cffi)
-		var instanceHandle = __resolveHandle(instance);
-		if (instanceHandle.high != 0 || instanceHandle.low != 0)
-		{
-			surfaceData = NativeCFFI.lime_window_create_vulkan_surface(__windowHandle, instanceHandle.high, instanceHandle.low);
-		}
+		Shorthand for `VK.createInstance (window.context.vulkan, applicationName)`.
+	**/
+	public function createInstance(applicationName:String = "Lime"):VKInstance
+	{
+		return VK.createInstance(this, applicationName);
+	}
+
+	/**
+		Queries the Vulkan API version supported by the loader.
+
+		Unlike `VKInstance.getApiVersion()` this works before any instance exists —
+		it only touches the loader — so it is the earliest point at which an
+		application can decide which feature level to target.
+	**/
+	public function getApiVersion():VKApiVersion
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		return VKApiVersion.fromDynamic(NativeCFFI.lime_vk_enumerate_instance_version(__windowHandle));
 		#end
 
-		if (surfaceData != null)
+		return null;
+	}
+
+	/**
+		Creates a `VKSurface` for the current window using an existing `VKInstance`.
+
+		Equivalent to `instance.createSurface (this)`; returns `null` when the
+		instance is `null` or the surface could not be created.
+	**/
+	public function createSurface(instance:VKInstance):VKSurface
+	{
+		return (instance != null) ? instance.createSurface(this) : null;
+	}
+
+	private function get_version():String
+	{
+		if (!__versionQueried)
 		{
-			return Int64.make(surfaceData.high, surfaceData.low);
+			__versionQueried = true;
+
+			var apiVersion = getApiVersion();
+			if (apiVersion != null)
+			{
+				__version = apiVersion.toString();
+			}
 		}
 
-		return Int64.ofInt(0);
+		return __version;
 	}
 
 	/**
@@ -159,36 +205,5 @@ class VulkanRenderContext
 		#end
 
 		return null;
-	}
-
-	private static function __resolveHandle(value:Dynamic):Int64
-	{
-		if (value == null) return Int64.ofInt(0);
-
-		var high:Dynamic = Reflect.field(value, "high");
-		var low:Dynamic = Reflect.field(value, "low");
-		if (high != null && low != null)
-		{
-			return Int64.make(high, low);
-		}
-
-		switch (Type.typeof(value))
-		{
-			case TInt:
-				return Int64.ofInt(cast value);
-			default:
-		}
-
-		var getField = Reflect.field(value, "get");
-		if (getField != null)
-		{
-			try
-			{
-				return __resolveHandle(Reflect.callMethod(value, getField, []));
-			}
-			catch (e:Dynamic) {}
-		}
-
-		return Int64.ofInt(0);
 	}
 }

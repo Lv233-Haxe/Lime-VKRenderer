@@ -32,6 +32,19 @@ class VKDescriptorSet
 		return !VK.__isZero(handle);
 	}
 
+	public function free():Void
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		var device = get_device();
+		if (isValid() && device != null && device.isValid() && pool != null && pool.isValid())
+		{
+			NativeCFFI.lime_vk_free_descriptor_set(device.instance.context.__windowHandle, device.instance.handle.high, device.instance.handle.low,
+				device.handle.high, device.handle.low, pool.handle.high, pool.handle.low, handle.high, handle.low);
+			handle = Int64.ofInt(0);
+		}
+		#end
+	}
+
 	public function updateBuffer(binding:Int, buffer:VKBuffer, range:Int, offset:Int = 0, descriptorType:Int = VK.DESCRIPTOR_TYPE_UNIFORM_BUFFER):Bool
 	{
 		#if (!macro && lime_cffi && lime_vulkan)

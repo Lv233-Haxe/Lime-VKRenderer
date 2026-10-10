@@ -19,8 +19,8 @@
 	<define name="lime-howlerjs" if="html5" />
 	<define name="lime-html5" if="html5" />
 	<define name="lime-native" if="native" />
-	<define name="lime-openalsoft" if="windows || linux || mac || android" unless="static_link || lime-mojoal || winrt" />
-	<define name="lime-mojoal" if="lime-switch || static_link || winrt" unless="lime-openalsoft" />
+	<define name="lime-openalsoft" if="windows || linux || mac || android" unless="lime-mojoal || winrt" />
+	<define name="lime-mojoal" if="lime-switch || winrt" unless="lime-openalsoft" />
 	<define name="lime-openal" if="ios || tvos || emscripten || lime-openalsoft || lime-mojoal" />
 	<define name="lime-opengl" if="desktop" unless="html5" />
 	<define name="lime-opengles" if="emscripten || mobile" />
@@ -28,7 +28,7 @@
 	<define name="lime-vulkan" if="cpp linux" unless="no-vulkan || lime-no-vulkan" />
 	<define name="lime-vorbis" if="native" />
 	<define name="lime-webgl" if="html5" />
-	<haxedef name="lime_sdl_sound" if="native" />
+	<!-- SDL3: the vendored SDL_sound is SDL2-only and is no longer built -->
 
 	<define name="no-typedarray-inline" if="cs" />
 	<haxedef name="no-compilation" />

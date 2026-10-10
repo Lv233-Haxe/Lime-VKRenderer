@@ -209,6 +209,14 @@ class VKDeviceMemory
 			byteLength = bytes.length - byteOffset;
 		}
 
+		if (Int64.compare(Int64.add(memoryOffset, Int64.ofInt(byteLength)), size) > 0)
+		{
+			// The C++ side maps the whole allocation so its flush range can use
+			// VK_WHOLE_SIZE; that removes the implicit bounds check that the old
+			// map(memoryOffset, byteLength) used to provide.
+			return false;
+		}
+
 		#if (!macro && lime_cffi && lime_vulkan)
 		if (isValid() && device != null && device.isValid())
 		{
@@ -237,6 +245,13 @@ class VKDeviceMemory
 		if (byteLength < 0)
 		{
 			byteLength = bytes.length - byteOffset;
+		}
+
+		if (Int64.compare(Int64.add(memoryOffset, Int64.ofInt(byteLength)), size) > 0)
+		{
+			// See upload(): the whole allocation is mapped now, so the range is
+			// validated here instead.
+			return false;
 		}
 
 		#if (!macro && lime_cffi && lime_vulkan)

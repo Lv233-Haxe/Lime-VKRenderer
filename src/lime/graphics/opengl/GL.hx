@@ -593,6 +593,19 @@ class GL
 	public static var type(default, null):RenderContextType;
 	public static var version(default, null):Float;
 
+	/**
+		GLVK (OpenGL-on-Vulkan) hook: swaps the process-wide GL context at runtime.
+		All inline statics read `context`, so every GL.* call in every library
+		routes to the replacement after this is called. Assignment stays private
+		to lime (default, null) -- external code goes through this method.
+	**/
+	public static function __setGLContext(newContext:Dynamic):Void
+	{
+		context = newContext;
+		type = RenderContextType.OPENGL;
+		version = 3.3;
+	}
+
 	public static inline function activeTexture(texture:Int):Void
 	{
 		context.activeTexture(texture);
@@ -2603,7 +2616,7 @@ class GL
 #if hl
 @:keep
 #end
-@:dox(hide) @:noCompletion class GLObject
+@:dox(hide) @:noCompletion @:allow(vulkan.glvk) class GLObject
 {
 	@:noCompletion private var id:Int;
 	@:noCompletion private var ptr:#if (lime_cffi && (lime_opengl || lime_opengles) && !macro) CFFIPointer #else Dynamic #end;

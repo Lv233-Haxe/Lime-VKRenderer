@@ -990,11 +990,6 @@ class CommandLineTools
 			Log.println("  \x1b[1m-clean\x1b[0m -- Add a \"clean\" action before running the current command");
 		}
 
-		if (command == "build" || command == "test")
-		{
-			Log.println("  \x1b[1m-noupdate\x1b[0m -- Disable the \"update\" action before running the current command");
-		}
-
 		Log.println("  \x1b[1m-nocolor\x1b[0m -- Disable ANSI format codes in output");
 
 		if (command == "run" || command == "test")

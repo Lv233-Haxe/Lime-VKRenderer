@@ -98,6 +98,109 @@ class VKInstance
 		return VK.pickPhysicalDevice(enumeratePhysicalDevices(surface), surface != null && surface.isValid(), preferDiscrete);
 	}
 
+	/**
+		Returns the Vulkan API version supported by the loader.
+
+		This is `vkEnumerateInstanceVersion` (Vulkan 1.1 core); on a 1.0-only
+		loader the call fails and `null` is returned.
+	**/
+	public function getApiVersion():VKApiVersion
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (context != null)
+		{
+			// vkEnumerateInstanceVersion is a global command, so this also works
+			// before the instance itself is usable.
+			return VKApiVersion.fromDynamic(NativeCFFI.lime_vk_enumerate_instance_version(context.__windowHandle));
+		}
+		#end
+
+		return null;
+	}
+
+	/**
+		Enumerates the instance extensions available on this system, optionally
+		filtered to those provided by the named implicit layer.
+	**/
+	public function getExtensions(layerName:String = null):Array<VKExtensionProperties>
+	{
+		var extensions = new Array<VKExtensionProperties>();
+
+		#if (!macro && lime_cffi)
+		// vkEnumerateInstanceExtensionProperties is a global command: it needs the
+		// loader, not this instance, so it works before the instance exists.
+		if (context != null)
+		{
+			var result:Dynamic = NativeCFFI.lime_vk_enumerate_instance_extension_properties(context.__windowHandle, layerName);
+			if (result != null)
+			{
+				var length:Int = untyped result.length;
+				for (i in 0...length)
+				{
+					extensions.push(VKExtensionProperties.fromDynamic(untyped result[i]));
+				}
+			}
+		}
+		#end
+
+		return extensions;
+	}
+
+	/**
+		Enumerates the instance layers available on this system.
+	**/
+	public function getLayers():Array<VKLayerProperties>
+	{
+		var layers = new Array<VKLayerProperties>();
+
+		#if (!macro && lime_cffi)
+		if (context != null)
+		{
+			var result:Dynamic = NativeCFFI.lime_vk_enumerate_instance_layer_properties(context.__windowHandle);
+			if (result != null)
+			{
+				var length:Int = untyped result.length;
+				for (i in 0...length)
+				{
+					layers.push(VKLayerProperties.fromDynamic(untyped result[i]));
+				}
+			}
+		}
+		#end
+
+		return layers;
+	}
+
+	/**
+		Enumerates physical-device groups (Vulkan 1.1).
+
+		Each group is a set of devices that can be driven by one logical device.
+		A plain single-GPU machine yields one group holding one device.
+	**/
+	public function enumeratePhysicalDeviceGroups():Array<VKPhysicalDeviceGroupProperties>
+	{
+		var groups = new Array<VKPhysicalDeviceGroupProperties>();
+
+		if (context == null || VK.__isZero(handle))
+		{
+			return groups;
+		}
+
+		#if (!macro && lime_cffi && lime_vulkan)
+		var result:Dynamic = NativeCFFI.lime_vk_enumerate_physical_device_groups(context.__windowHandle, handle.high, handle.low);
+		if (result != null)
+		{
+			var length:Int = untyped result.length;
+			for (i in 0...length)
+			{
+				groups.push(VKPhysicalDeviceGroupProperties.fromDynamic(untyped result[i]));
+			}
+		}
+		#end
+
+		return groups;
+	}
+
 	public inline function get():Int64
 	{
 		return handle;

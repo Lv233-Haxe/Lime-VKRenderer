@@ -86,6 +86,40 @@ class Gamepad
 		#end
 	}
 
+	/**
+		Rumbles the trigger motors (SDL 3's SDL_RumbleGamepadTriggers, exposed
+		on controllers that provide individual trigger actuators).
+
+		@param	leftTrigger		The intensity of the left trigger rumble motor, from 0 to 1.
+		@param	rightTrigger	The intensity of the right trigger rumble motor, from 0 to 1.
+		@param	duration		The duration of the rumble effect, in milliseconds.
+	**/
+	public inline function rumbleTriggers(leftTrigger:Float, rightTrigger:Float, duration:Int):Void
+	{
+		#if (lime_cffi && !macro)
+		NativeCFFI.lime_gamepad_rumble_triggers(this.id, leftTrigger, rightTrigger, duration);
+		#else
+		return;
+		#end
+	}
+
+	/**
+		Sets the controller's LED color (SDL 3's SDL_SetGamepadLED) on hardware
+		that provides a player LED.
+
+		@param	red		The red component of the LED color, from 0 to 255.
+		@param	green	The green component of the LED color, from 0 to 255.
+		@param	blue	The blue component of the LED color, from 0 to 255.
+	**/
+	public inline function setLED(red:Int, green:Int, blue:Int):Void
+	{
+		#if (lime_cffi && !macro)
+		NativeCFFI.lime_gamepad_set_led(this.id, red, green, blue);
+		#else
+		return;
+		#end
+	}
+
 	@:noCompletion private static function __connect(id:Int):Void
 	{
 		if (!devices.exists(id))

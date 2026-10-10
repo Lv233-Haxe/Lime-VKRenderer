@@ -47,5 +47,12 @@ class Display
 	**/
 	public var safeArea(default, null):Rectangle;
 
+	/**
+		The area of the display usable by applications (the desktop work area,
+		excluding taskbars, docks and menu bars), backed by
+		SDL_GetDisplayUsableBounds (SDL 3.2+).
+	**/
+	public var usableBounds(default, null):Rectangle;
+
 	@:noCompletion private function new() {}
 }

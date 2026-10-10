@@ -7,6 +7,14 @@ class VKQueueFamilyInfo
 {
 	public var index(default, null):Int;
 	public var flags(default, null):Int;
+
+	/**
+		Finest image-transfer granularity this family supports.
+
+		Only populated by the Vulkan 1.1 query
+		(`VKPhysicalDevice.getQueueFamilyProperties2()`); `null` from the 1.0 path.
+	**/
+	public var minImageTransferGranularity(default, null):VKExtent3D;
 	public var queueCount(default, null):Int;
 	public var timestampValidBits(default, null):Int;
 	public var supportsGraphics(default, null):Bool;
@@ -25,6 +33,9 @@ class VKQueueFamilyInfo
 		supportsCompute = data.supportsCompute;
 		supportsTransfer = data.supportsTransfer;
 		supportsPresent = data.supportsPresent;
+
+		var granularity:Dynamic = data.minImageTransferGranularity;
+		minImageTransferGranularity = (granularity != null) ? VKExtent3D.fromDynamic(granularity) : null;
 	}
 
 	/**

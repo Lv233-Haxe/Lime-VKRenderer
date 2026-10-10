@@ -616,6 +616,10 @@ class NativeOpenGLRenderContext
 	public var type(default, null):RenderContextType;
 	public var version(default, null):Float;
 
+	/** GLVK sets this before constructing its context subclass: skips the
+	    native GL driver probe (no GL exists under Vulkan). */
+	public static var __skipNativeProbe:Bool = false;
+
 	private var __arrayBufferBinding:GLBuffer;
 	private var __elementBufferBinding:GLBuffer;
 	private var __contextID:Int;
@@ -630,6 +634,14 @@ class NativeOpenGLRenderContext
 	private function new()
 	{
 		__contextID = __lastContextID++;
+
+		if (__skipNativeProbe)
+		{
+			__initialize();
+			type = OPENGL;
+			version = 2;
+			return;
+		}
 
 		__initialize();
 

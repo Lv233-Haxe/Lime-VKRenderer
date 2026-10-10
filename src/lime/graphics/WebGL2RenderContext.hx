@@ -3765,6 +3765,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	#end
 	{
 		var size = (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.bufferData(target, size, __tempPointer, usage);
 	}
@@ -3776,6 +3777,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	#end
 	{
 		var size = (length != null) ? length : (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.bufferSubData(target, offset, size, __tempPointer);
 	}
@@ -3853,6 +3855,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	#end
 	{
 		var imageSize = (srcLengthOverride != null) ? srcLengthOverride : (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.compressedTexImage2D(target, level, internalformat, width, height, border, imageSize, __tempPointer);
 	}
@@ -3861,6 +3864,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 			srcOffset:Int = 0, ?srcLengthOverride:Int):Void
 	{
 		var imageSize = (srcLengthOverride != null) ? srcLengthOverride : (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.compressedTexImage3D(target, level, internalformat, width, height, depth, border, imageSize, __tempPointer);
 	}
@@ -3874,6 +3878,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	#end
 	{
 		var imageSize = (srcLengthOverride != null) ? srcLengthOverride : (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, __tempPointer);
 	}
@@ -3882,6 +3887,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 			srcData:ArrayBufferView, srcOffset:Int = 0, ?srcLengthOverride:Int):Void
 	{
 		var imageSize = (srcLengthOverride != null) ? srcLengthOverride : (srcData != null) ? srcData.byteLength : 0;
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.compressedTexSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, imageSize, __tempPointer);
 	}
@@ -4529,6 +4535,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	#end
 	{
 		#if !lime_webgl
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.texImage2D(target, level, internalformat, width, height, border, format, type, __tempPointer);
 		#end
@@ -4537,6 +4544,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	public inline function texImage3D(target:Int, level:Int, internalformat:Int, width:Int, height:Int, depth:Int, border:Int, format:Int, type:Int,
 			srcData:ArrayBufferView, srcOffset:Int = 0):Void
 	{
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.texImage3D(target, level, internalformat, width, height, depth, border, format, type, __tempPointer);
 	}
@@ -4569,6 +4577,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 		?srcOffset:Int):Void
 	#end
 	{
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.texSubImage2D(target, level, xoffset, yoffset, width, height, format, type, __tempPointer);
 	}
@@ -4576,6 +4585,7 @@ abstract WebGL2RenderContext(Dynamic) from Dynamic to Dynamic
 	public inline function texSubImage3D(target:Int, level:Int, xoffset:Int, yoffset:Int, zoffset:Int, width:Int, height:Int, depth:Int, format:Int, type:Int,
 			srcData:ArrayBufferView, srcOffset:Int = 0):Void
 	{
+		if (__tempPointer == null) __tempPointer = new BytePointer();
 		__tempPointer.set(srcData, srcOffset);
 		this.texSubImage3D(target, level, xoffset, yoffset, zoffset, width, height, depth, format, type, __tempPointer);
 	}

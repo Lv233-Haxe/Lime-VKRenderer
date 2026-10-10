@@ -80,6 +80,9 @@ class NativeCFFI
 
 	@:cffi private static function lime_audio_load_file(path:Dynamic, buffer:Dynamic):Dynamic;
 
+	// SDL3: the vendored SDL_sound is SDL2-only and is not built unless the
+	// lime_sdl_sound define is explicitly restored
+	#if (lime_sdl_sound && !macro)
 	@:cffi private static function lime_sdl_sound_get_info_from_bytes(bytes:Dynamic):Dynamic;
 
 	@:cffi private static function lime_sdl_sound_get_info_from_file(path:String):Dynamic;
@@ -95,6 +98,7 @@ class NativeCFFI
 	@:cffi private static function lime_sdl_sound_stream_seek(stream:CFFIPointer, ms:Int):Bool;
 
 	@:cffi private static function lime_sdl_sound_stream_clear(stream:CFFIPointer):Void;
+	#end
 
 	@:cffi private static function lime_bytes_from_data_pointer(data:Float, length:Int, bytes:Dynamic):Dynamic;
 
@@ -184,10 +188,6 @@ class NativeCFFI
 
 	@:cffi private static function lime_font_set_size(handle:Dynamic, size:Int, dpi:Int):Void;
 
-	@:cffi private static function lime_font_set_stem_darkening(handle:Dynamic, enable:Bool):Void;
-
-	@:cffi private static function lime_font_set_stem_darkening_parameters(handle:Dynamic, params:Array<Int>):Void;
-
 	@:cffi private static function lime_gamepad_add_mappings(mappings:Dynamic):Void;
 
 	@:cffi private static function lime_gamepad_get_device_guid(id:Int):Dynamic;
@@ -195,6 +195,10 @@ class NativeCFFI
 	@:cffi private static function lime_gamepad_get_device_name(id:Int):Dynamic;
 
 	@:cffi private static function lime_gamepad_rumble(id:Int, lowFrequencyRumble:Float, highFrequencyRumble:Float, duration:Int):Void;
+
+	@:cffi private static function lime_gamepad_rumble_triggers(id:Int, leftTrigger:Float, rightTrigger:Float, duration:Int):Void;
+
+	@:cffi private static function lime_gamepad_set_led(id:Int, red:Int, green:Int, blue:Int):Void;
 
 	@:cffi private static function lime_gamepad_event_manager_register(callback:Dynamic, eventObject:Dynamic):Void;
 
@@ -306,6 +310,10 @@ class NativeCFFI
 
 	@:cffi private static function lime_system_get_platform_version():Dynamic;
 
+	@:cffi private static function lime_system_get_theme():Int;
+
+	@:cffi private static function lime_system_is_tablet():Bool;
+
 	@:cffi private static function lime_system_get_timer():Float;
 
 	@:cffi private static function lime_system_open_file(path:String):Void;
@@ -349,6 +357,12 @@ class NativeCFFI
 	@:cffi private static function lime_window_get_mouse_lock(handle:Dynamic):Bool;
 
 	@:cffi private static function lime_window_get_opacity(handle:Dynamic):Float;
+
+	@:cffi private static function lime_window_get_progress_state(handle:Dynamic):Int;
+
+	@:cffi private static function lime_window_get_progress_value(handle:Dynamic):Float;
+
+	@:cffi private static function lime_window_get_safe_area(handle:Dynamic):Dynamic;
 
 	@:cffi private static function lime_window_get_scale(handle:Dynamic):Float;
 
@@ -405,6 +419,18 @@ class NativeCFFI
 
 	@:cffi private static function lime_vk_create_semaphore(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
 
+	@:cffi private static function lime_vk_create_timeline_semaphore(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		initialHigh:Int, initialLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_semaphore_counter_value(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		semaphoreHigh:Int, semaphoreLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_signal_semaphore(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		semaphoreHigh:Int, semaphoreLow:Int, valueHigh:Int, valueLow:Int):Bool;
+
+	@:cffi private static function lime_vk_wait_semaphores(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		state:Array<Int>, timeoutHigh:Int, timeoutLow:Int):Bool;
+
 	@:cffi private static function lime_vk_destroy_semaphore(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		semaphoreHigh:Int, semaphoreLow:Int):Void;
 
@@ -421,6 +447,9 @@ class NativeCFFI
 
 	@:cffi private static function lime_vk_queue_submit(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int,
 		queueLow:Int, commandBufferHigh:Int, commandBufferLow:Int, fenceHigh:Int, fenceLow:Int):Bool;
+
+	@:cffi private static function lime_vk_queue_bind_sparse(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int,
+		queueLow:Int, imageHigh:Int, imageLow:Int, memoryHigh:Int, memoryLow:Int, state:Array<Int>):Bool;
 
 	@:cffi private static function lime_vk_allocate_memory(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int,
 		deviceHigh:Int, deviceLow:Int, sizeHigh:Int, sizeLow:Int, memoryTypeBits:Int, properties:Int):Dynamic;
@@ -464,11 +493,17 @@ class NativeCFFI
 	@:cffi private static function lime_vk_create_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, width:Int,
 		height:Int, depth:Int, mipLevels:Int, arrayLayers:Int, format:Int, imageType:Int, tiling:Int, usage:Int, samples:Int):Dynamic;
 
+	@:cffi private static function lime_vk_create_image_ex(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, width:Int,
+		height:Int, depth:Int, mipLevels:Int, arrayLayers:Int, format:Int, imageType:Int, tiling:Int, usage:Int, samples:Int, createFlags:Int):Dynamic;
+
 	@:cffi private static function lime_vk_destroy_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int,
 		imageLow:Int):Void;
 
 	@:cffi private static function lime_vk_get_image_memory_requirements(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		imageHigh:Int, imageLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_subresource_layout(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		imageHigh:Int, imageLow:Int, aspectMask:Int, mipLevel:Int, arrayLayer:Int):Dynamic;
 
 	@:cffi private static function lime_vk_bind_image_memory(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int,
 		imageLow:Int, memoryHigh:Int, memoryLow:Int, offsetHigh:Int, offsetLow:Int):Bool;
@@ -540,6 +575,9 @@ class NativeCFFI
 	@:cffi private static function lime_vk_allocate_descriptor_set(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		poolHigh:Int, poolLow:Int, layoutHigh:Int, layoutLow:Int):Dynamic;
 
+	@:cffi private static function lime_vk_free_descriptor_set(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		poolHigh:Int, poolLow:Int, setHigh:Int, setLow:Int):Bool;
+
 	@:cffi private static function lime_vk_update_descriptor_set_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		setHigh:Int, setLow:Int, binding:Int, descriptorType:Int, imageViewHigh:Int, imageViewLow:Int, samplerHigh:Int, samplerLow:Int, imageLayout:Int):Bool;
 
@@ -579,6 +617,12 @@ class NativeCFFI
 		clear:Array<Float>):Bool;
 
 	@:cffi private static function lime_vk_cmd_end_render_pass(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_rendering(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, state:Array<Int>, clear:Array<Float>):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_rendering(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		commandBufferHigh:Int, commandBufferLow:Int):Bool;
 
 	@:cffi private static function lime_vk_cmd_bind_pipeline(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
@@ -630,6 +674,12 @@ class NativeCFFI
 	@:cffi private static function lime_vk_cmd_pipeline_barrier_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, state:Array<Int>):Bool;
 
+	@:cffi private static function lime_vk_cmd_pipeline_barrier2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_cmd_pipeline_barrier_image2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, state:Array<Int>):Bool;
+
 	@:cffi private static function lime_vk_cmd_clear_color_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, layout:Int, aspectMask:Int, clear:Array<Float>):Bool;
 
@@ -644,6 +694,2881 @@ class NativeCFFI
 
 	@:cffi private static function lime_vk_cmd_push_constants(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
 		commandBufferHigh:Int, commandBufferLow:Int, layoutHigh:Int, layoutLow:Int, state:Array<Int>, bytes:Dynamic):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, sourceHigh:Int, sourceLow:Int, destinationHigh:Int, destinationLow:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_cmd_resolve_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, sourceHigh:Int, sourceLow:Int, destinationHigh:Int, destinationLow:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_cmd_update_buffer(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, bytes:Dynamic):Bool;
+
+	@:cffi private static function lime_vk_cmd_fill_buffer(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, sizeHigh:Int, sizeLow:Int,
+		value:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_query(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, queryIndex:Int, flags:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_query(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, queryIndex:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_reset_query_pool(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, firstQuery:Int, queryCount:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_timestamp(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, pipelineStage:Int, poolHigh:Int, poolLow:Int, queryIndex:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_query_pool_results(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, bufferHigh:Int, bufferLow:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_create_query_pool(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		queryType:Int, queryCount:Int):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_query_pool(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		poolHigh:Int, poolLow:Int):Void;
+
+	@:cffi private static function lime_vk_reset_query_pool(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		poolHigh:Int, poolLow:Int, firstQuery:Int, queryCount:Int):Bool;
+
+	@:cffi private static function lime_vk_get_query_pool_results(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		poolHigh:Int, poolLow:Int, bytes:Dynamic, firstQuery:Int, queryCount:Int, stride:Int, flags:Int):Bool;
+
+	@:cffi private static function lime_vk_wait_for_fences(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		state:Array<Int>, timeoutHigh:Int, timeoutLow:Int):Bool;
+
+	@:cffi private static function lime_vk_create_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, flags:Int):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int,
+		eventLow:Int):Void;
+
+	@:cffi private static function lime_vk_get_event_status(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int,
+		eventLow:Int):Int;
+
+	@:cffi private static function lime_vk_get_fence_status(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		fenceHigh:Int, fenceLow:Int):Int;
+
+	@:cffi private static function lime_vk_cmd_set_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_reset_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_wait_events(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, srcStageMask:Int, dstStageMask:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_cmd_dispatch(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, x:Int, y:Int, z:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_dispatch_indirect(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_next_subpass(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, contents:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_execute_commands(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, state:Array<Int>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_line_width(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, width:Float):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_bias(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, constantFactor:Float, slopeFactor:Float, clamp:Float):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_blend_constants(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, red:Float, green:Float, blue:Float, alpha:Float):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_bounds(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, minBounds:Float, maxBounds:Float):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_stencil_compare_mask(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int, compareMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_stencil_write_mask(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int, writeMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_stencil_reference(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int, reference:Int):Bool;
+
+	@:cffi private static function lime_vk_create_compute_pipeline(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int,
+		layoutHigh:Int, layoutLow:Int, shaderHigh:Int, shaderLow:Int, cacheHigh:Int, cacheLow:Int, flags:Int, requiredSubgroupSize:Int):Dynamic;
+	@:cffi private static function lime_vk_get_physical_device_features(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_format_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_image_format_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, tiling:Int, usage:Int, flags:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_memory_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_sparse_image_format_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, samples:Int, usage:Int, tiling:Int):Dynamic;
+
+	@:cffi private static function lime_vk_create_buffer_view(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int, format:Int, offset:Int, range:Int):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_buffer_view(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferViewHigh:Int, bufferViewLow:Int):Void;
+
+	@:cffi private static function lime_vk_get_device_queue(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueFamilyIndex:Int, queueIndex:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_memory_commitment(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_sparse_memory_requirements(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_merge_pipeline_caches(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, destinationHigh:Int, destinationLow:Int, sourceCaches:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_get_render_area_granularity(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, renderPassHigh:Int, renderPassLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_set_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Bool;
+
+	@:cffi private static function lime_vk_reset_event(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Bool;
+
+	@:cffi private static function lime_vk_enumerate_instance_extension_properties(handle:Dynamic, layerName:String):Dynamic;
+
+	@:cffi private static function lime_vk_enumerate_instance_layer_properties(handle:Dynamic):Dynamic;
+
+	@:cffi private static function lime_vk_enumerate_device_extension_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, layerName:String):Dynamic;
+
+	@:cffi private static function lime_vk_enumerate_device_layer_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_enumerate_instance_version(handle:Dynamic):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_features2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, structTypes:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_descriptor_indexing_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_vulkan12_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+	@:cffi private static function lime_vk_get_inline_uniform_block_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+	@:cffi private static function lime_vk_get_subgroup_size_control_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_buffer_memory_requirements2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_memory_requirements2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_bind_buffer_memory2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int, memoryHigh:Int, memoryLow:Int, offsetHigh:Int, offsetLow:Int):Bool;
+
+	@:cffi private static function lime_vk_bind_image_memory2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int, memoryHigh:Int, memoryLow:Int, offsetHigh:Int, offsetLow:Int):Bool;
+
+	@:cffi private static function lime_vk_get_device_queue2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, flags:Int, queueFamilyIndex:Int, queueIndex:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_descriptor_set_layout_support(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bindings:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_buffer_device_address(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_buffer_opaque_capture_address(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_memory_opaque_capture_address(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_draw_indirect_count(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indexed_indirect_count(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_trim_command_pool(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandPoolHigh:Int, commandPoolLow:Int, flags:Int):Void;
+
+	@:cffi private static function lime_vk_create_render_pass2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, state:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_begin_render_pass2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, renderPassHigh:Int, renderPassLow:Int, framebufferHigh:Int, framebufferLow:Int, state:Array<Dynamic>, clear:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_next_subpass2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, contents:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_render_pass2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_create_descriptor_update_template(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, state:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_descriptor_update_template(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, updateTemplateHigh:Int, updateTemplateLow:Int):Void;
+
+	@:cffi private static function lime_vk_update_descriptor_set_with_template(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, setHigh:Int, setLow:Int, updateTemplateHigh:Int, updateTemplateLow:Int, bytes:Bytes, byteOffset:Int, byteLength:Int):Bool;
+
+	@:cffi private static function lime_vk_get_physical_device_external_buffer_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, flags:Int, usage:Int, handleType:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_external_fence_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, handleType:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_external_semaphore_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, handleType:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_format_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_image_format_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, tiling:Int, usage:Int, flags:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_memory_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_queue_family_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_sparse_image_format_properties2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, samples:Int, usage:Int, tiling:Int):Dynamic;
+
+	@:cffi private static function lime_vk_create_sampler_ycbcr_conversion(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, format:Int, ycbcrModel:Int, ycbcrRange:Int, rSwizzle:Int, gSwizzle:Int, bSwizzle:Int, aSwizzle:Int, xChromaOffset:Int, yChromaOffset:Int, chromaFilter:Int, forceExplicitReconstruction:Int):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_sampler_ycbcr_conversion(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, conversionHigh:Int, conversionLow:Int):Void;
+
+	@:cffi private static function lime_vk_enumerate_physical_device_groups(handle:Dynamic, instanceHigh:Int, instanceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_group_peer_memory_features(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryTypeIndex:Int, localDeviceIndex:Int, remoteDeviceIndex:Int):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_set_device_mask(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, deviceMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_dispatch_base(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, groupCountX:Int, groupCountY:Int, groupCountZ:Int, baseGroupX:Int, baseGroupY:Int, baseGroupZ:Int):Bool;
+
+	@:cffi private static function lime_vk_get_image_sparse_memory_requirements2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_capabilities(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_formats(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_present_modes(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_create_device_with_features(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:Array<Dynamic>, features:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_allocate_memory_ex(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, deviceHigh:Int, deviceLow:Int, sizeHigh:Int, sizeLow:Int, memoryTypeBits:Int, properties:Int, allocateFlags:Int):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_set_cull_mode(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, cullMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_front_face(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, frontFace:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_primitive_topology(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveTopology:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_test_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthTestEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_write_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthWriteEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_compare_op(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthCompareOp:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_bounds_test_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthBoundsTestEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_stencil_test_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stencilTestEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_stencil_op(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int, failOp:Int, passOp:Int, depthFailOp:Int, compareOp:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_rasterizer_discard_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizerDiscardEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_bias_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthBiasEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_primitive_restart_enable(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveRestartEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_viewport_with_count(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, viewports:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_scissor_with_count(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, scissors:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_get_physical_device_tool_properties(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_bind_vertex_buffers_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindings:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_create_private_data_slot(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, flags:Int):Dynamic;
+
+	@:cffi private static function lime_vk_destroy_private_data_slot(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, slotHigh:Int, slotLow:Int):Void;
+
+	@:cffi private static function lime_vk_set_private_data(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, objectType:Int, objectHandleHigh:Int, objectHandleLow:Int, slotHigh:Int, slotLow:Int, dataHigh:Int, dataLow:Int):Bool;
+
+	@:cffi private static function lime_vk_get_private_data(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, objectType:Int, objectHandleHigh:Int, objectHandleLow:Int, slotHigh:Int, slotLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_copy_buffer_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceBufferHigh:Int, sourceBufferLow:Int, destinationBufferHigh:Int, destinationBufferLow:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_image_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_buffer_to_image_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceBufferHigh:Int, sourceBufferLow:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_image_to_buffer_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationBufferHigh:Int, destinationBufferLow:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_blit_image_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, filter:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_resolve_image_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_timestamp_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stageHigh:Int, stageLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int):Bool;
+
+	@:cffi private static function lime_vk_queue_submit_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, flags:Int, waitSemaphores:Array<Dynamic>, commandBuffers:Array<Dynamic>, signalSemaphores:Array<Dynamic>, fenceHigh:Int, fenceLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_event_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, dependency:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_reset_event_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageHigh:Int, stageLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_wait_events_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, events:Array<Dynamic>, dependency:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_get_device_buffer_memory_requirements(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_image_memory_requirements(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_image_sparse_memory_requirements(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:Array<Dynamic>):Dynamic;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:cffi private static function lime_vk_acquire_drm_display_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, drmFd:Int, displayHigh:Int, displayLow:Int):Bool;
+
+	@:cffi private static function lime_vk_acquire_next_image_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pAcquireInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_acquire_next_image_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, timeoutHigh:Int, timeoutLow:Int, semaphoreHigh:Int, semaphoreLow:Int, fenceHigh:Int, fenceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_acquire_profiling_lock_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_bind_optical_flow_session_image_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, sessionHigh:Int, sessionLow:Int, bindingPoint:Int, viewHigh:Int, viewLow:Int, layout:Int):Bool;
+
+	@:cffi private static function lime_vk_bind_video_session_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int, bindSessionMemoryInfoCountIn:Int, pBindSessionMemoryInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_conditional_rendering_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pConditionalRenderingBegin:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_conditional_rendering_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pConditionalRenderingBegin:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_custom_resolve_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBeginCustomResolveInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLabelInfo:Array<Dynamic>, pLabelName:String):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_gpa_session_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_query_indexed_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int, flags:Int, index:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_transform_feedback_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterRange:Int, counterRangeCountIn:Int, pCounterInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_transform_feedback_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterBuffer:Int, counterBufferCountIn:Int, pCounterBuffers:Array<Dynamic>, pCounterBufferOffsets:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindDescriptorBufferEmbeddedSamplersInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, set:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_descriptor_buffers_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferCountIn:Int, pBindingInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_index_buffer_3_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_pipeline_shader_group_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, pipelineHigh:Int, pipelineLow:Int, groupIndex:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_resource_heap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_sampler_heap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_shaders_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stageCountIn:Int, pStages:Array<Dynamic>, pShaders:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_shading_rate_image_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, imageViewHigh:Int, imageViewLow:Int, imageLayout:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_transform_feedback_buffers_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBindingInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_transform_feedback_buffers_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBuffers:Array<Dynamic>, pOffsets:Array<Dynamic>, pSizes:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_vertex_buffers_3_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBindingInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_build_partitioned_acceleration_structures_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBuildInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_control_video_coding_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCodingControlInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_acceleration_structure_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_acceleration_structure_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, dstHigh:Int, dstLow:Int, srcHigh:Int, srcLow:Int, mode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_gpa_session_results_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_indirect_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryIndirectInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_indirect_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, copyBufferAddressHigh:Int, copyBufferAddressLow:Int, copyCount:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_to_image_indirect_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, copyBufferAddressHigh:Int, copyBufferAddressLow:Int, copyCountIn:Int, stride:Int, dstImageHigh:Int, dstImageLow:Int, dstImageLayout:Int, pImageSubresources:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_micromap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_query_pool_results_to_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int, queryCountIn:Int, pDstRange:Array<Dynamic>, dstFlags:Int, queryResultFlags:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_debug_marker_begin_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pMarkerInfo:Array<Dynamic>, pMarkerName:String):Bool;
+
+	@:cffi private static function lime_vk_cmd_debug_marker_end_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_debug_marker_insert_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pMarkerInfo:Array<Dynamic>, pMarkerName:String):Bool;
+
+	@:cffi private static function lime_vk_cmd_decompress_memory_indirect_count_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, decompressionMethod:Int, indirectCommandsAddressHigh:Int, indirectCommandsAddressLow:Int, indirectCommandsCountAddressHigh:Int, indirectCommandsCountAddressLow:Int, maxDecompressionCount:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_decompress_memory_indirect_count_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, indirectCommandsAddressHigh:Int, indirectCommandsAddressLow:Int, indirectCommandsCountAddressHigh:Int, indirectCommandsCountAddressLow:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_decompress_memory_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, decompressRegionCountIn:Int, pDecompressMemoryRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_dispatch_indirect_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indexed_indirect_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indexed_indirect_count_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indirect_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indirect_byte_count_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, instanceCountIn:Int, firstInstance:Int, pCounterInfo:Array<Dynamic>, counterOffset:Int, vertexStride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indirect_byte_count_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, instanceCount:Int, firstInstance:Int, counterBufferHigh:Int, counterBufferLow:Int, counterBufferOffsetHigh:Int, counterBufferOffsetLow:Int, counterOffset:Int, vertexStride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_indirect_count_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, groupCountX:Int, groupCountY:Int, groupCountZ:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, drawCount:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, drawCount:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, taskCount:Int, firstTask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_multi_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, drawCountIn:Int, pVertexInfo:Array<Dynamic>, instanceCount:Int, firstInstance:Int, stride:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_draw_multi_indexed_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, drawCountIn:Int, pIndexInfo:Array<Dynamic>, instanceCountIn:Int, firstInstance:Int, stride:Int, pVertexOffset:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_conditional_rendering_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_gpa_sample_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int, sampleID:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_gpa_session_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_query_indexed_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int, index:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_rendering_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRenderingEndInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_transform_feedback_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterRange:Int, counterRangeCountIn:Int, pCounterInfos:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_transform_feedback_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterBuffer:Int, counterBufferCountIn:Int, pCounterBuffers:Array<Dynamic>, pCounterBufferOffsets:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_end_video_coding_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pEndCodingInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_execute_generated_commands_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, isPreprocessed:Int, pGeneratedCommandsInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_fill_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDstRange:Array<Dynamic>, dstFlags:Int, data:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_insert_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLabelInfo:Array<Dynamic>, pLabelName:String):Bool;
+
+	@:cffi private static function lime_vk_cmd_preprocess_generated_commands_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pGeneratedCommandsInfo:Array<Dynamic>, stateCommandBufferHigh:Int, stateCommandBufferLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_alpha_to_coverage_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, alphaToCoverageEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_alpha_to_one_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, alphaToOneEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_attachment_feedback_loop_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, aspectMask:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_color_blend_advanced_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendAdvanced:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_color_blend_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendEnables:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_color_blend_equation_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendEquations:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_color_write_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, attachmentCountIn:Int, pColorWriteEnables:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_color_write_mask_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorWriteMasks:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_compute_occupancy_priority_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pParameters:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_conservative_rasterization_mode_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, conservativeRasterizationMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_modulation_mode_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_modulation_table_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationTableEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_modulation_table_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationTableCountIn:Int, pCoverageModulationTable:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_reduction_mode_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageReductionMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_to_color_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageToColorEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coverage_to_color_location_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageToColorLocation:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_bias_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDepthBiasInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_clamp_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClampEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_clamp_range_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClampMode:Int, pDepthClampRange:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_clip_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClipEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_depth_clip_negative_one_to_one_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, negativeOneToOne:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_descriptor_buffer_offsets_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, firstSet:Int, setCountIn:Int, pBufferIndices:Array<Dynamic>, pOffsets:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_discard_rectangle_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstDiscardRectangle:Int, discardRectangleCountIn:Int, pDiscardRectangles:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_discard_rectangle_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, discardRectangleEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_discard_rectangle_mode_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, discardRectangleMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_exclusive_scissor_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstExclusiveScissor:Int, exclusiveScissorCountIn:Int, pExclusiveScissorEnables:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_exclusive_scissor_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstExclusiveScissor:Int, exclusiveScissorCountIn:Int, pExclusiveScissors:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_extra_primitive_overestimation_size_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, extraPrimitiveOverestimationSize:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_fragment_shading_rate_enum_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, shadingRate:Int, combinerOps0:Int, combinerOps1:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_fragment_shading_rate_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pFragmentSize:Array<Dynamic>, combinerOps0:Int, combinerOps1:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_line_rasterization_mode_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, lineRasterizationMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_line_stipple_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stippledLineEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_logic_op_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, logicOp:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_logic_op_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, logicOpEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_patch_control_points_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, patchControlPoints:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_polygon_mode_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, polygonMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_primitive_restart_index_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveRestartIndex:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_provoking_vertex_mode_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, provokingVertexMode:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_rasterization_samples_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizationSamples:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_rasterization_stream_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizationStream:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineStackSize:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_representative_fragment_test_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, representativeFragmentTestEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_sample_locations_enable_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sampleLocationsEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_sample_mask_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, samples:Int, pSampleMask:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_shading_rate_image_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, shadingRateImageEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_tessellation_domain_origin_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, domainOrigin:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_vertex_input_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, vertexBindingDescriptionCountIn:Int, pVertexBindingDescriptions:Array<Dynamic>, vertexAttributeDescriptionCountIn:Int, pVertexAttributeDescriptions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_viewport_swizzle_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pViewportSwizzles:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_viewport_w_scaling_enable_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, viewportWScalingEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_viewport_w_scaling_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pViewportWScalings:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_trace_rays_indirect_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, indirectDeviceAddressHigh:Int, indirectDeviceAddressLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_trace_rays_indirect_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRaygenShaderBindingTable:Array<Dynamic>, pMissShaderBindingTable:Array<Dynamic>, pHitShaderBindingTable:Array<Dynamic>, pCallableShaderBindingTable:Array<Dynamic>, indirectDeviceAddressHigh:Int, indirectDeviceAddressLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_trace_rays_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRaygenShaderBindingTable:Array<Dynamic>, pMissShaderBindingTable:Array<Dynamic>, pHitShaderBindingTable:Array<Dynamic>, pCallableShaderBindingTable:Array<Dynamic>, width:Int, height:Int, depth:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_update_pipeline_indirect_buffer_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, pipelineHigh:Int, pipelineLow:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_acceleration_structures_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, accelerationStructureCountIn:Int, pAccelerationStructures:Array<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_acceleration_structures_properties_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, accelerationStructureCountIn:Int, pAccelerationStructures:Array<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_buffer_marker_2_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stage:Int, dstBufferHigh:Int, dstBufferLow:Int, dstOffsetHigh:Int, dstOffsetLow:Int, marker:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_buffer_marker_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineStage:Int, dstBufferHigh:Int, dstBufferLow:Int, dstOffsetHigh:Int, dstOffsetLow:Int, marker:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_marker_to_memory_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_write_micromaps_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, micromapCountIn:Int, pMicromaps:Array<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool;
+
+	@:cffi private static function lime_vk_compile_deferred_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineHigh:Int, pipelineLow:Int, shader:Int):Bool;
+
+	@:cffi private static function lime_vk_copy_acceleration_structure_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, deferredOperationHigh:Int, deferredOperationLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_copy_micromap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, deferredOperationHigh:Int, deferredOperationLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_create_acceleration_structure_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_acceleration_structure_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_cu_function_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pName:String):Dynamic;
+
+	@:cffi private static function lime_vk_create_deferred_operation_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_create_display_mode_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_display_plane_surface_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_external_compute_queue_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_gpa_session_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_headless_surface_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_micromap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_optical_flow_session_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_video_session_parameters_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_debug_marker_set_object_name_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pNameInfo:Array<Dynamic>, pObjectName:String):Bool;
+
+	@:cffi private static function lime_vk_debug_report_message_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, flags:Int, objectType:Int, objectHigh:Int, objectLow:Int, locationHigh:Int, locationLow:Int, messageCode:Int, pLayerPrefix:String, pMessage:String):Bool;
+
+	@:cffi private static function lime_vk_deferred_operation_join_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_acceleration_structure_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, accelerationStructureHigh:Int, accelerationStructureLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_acceleration_structure_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, accelerationStructureHigh:Int, accelerationStructureLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_cu_function_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, functionHigh:Int, functionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_cu_module_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, moduleHigh:Int, moduleLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_debug_report_callback_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, callbackHigh:Int, callbackLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_debug_utils_messenger_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, messengerHigh:Int, messengerLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_deferred_operation_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_external_compute_queue_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, externalQueueHigh:Int, externalQueueLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_gpa_session_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_indirect_commands_layout_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectCommandsLayoutHigh:Int, indirectCommandsLayoutLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_indirect_commands_layout_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectCommandsLayoutHigh:Int, indirectCommandsLayoutLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_indirect_execution_set_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_micromap_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, micromapHigh:Int, micromapLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_optical_flow_session_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, sessionHigh:Int, sessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_pipeline_binary_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineBinaryHigh:Int, pipelineBinaryLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_shader_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderHigh:Int, shaderLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_surface_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, surfaceHigh:Int, surfaceLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_swapchain_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_validation_cache_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, validationCacheHigh:Int, validationCacheLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_video_session_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_destroy_video_session_parameters_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionParametersHigh:Int, videoSessionParametersLow:Int):Bool;
+
+	@:cffi private static function lime_vk_display_power_control_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, displayHigh:Int, displayLow:Int, pDisplayPowerInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_get_acceleration_structure_device_address_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_acceleration_structure_memory_requirements_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_calibrated_timestamps_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, timestampCountIn:Int, pTimestampInfos:Array<Dynamic>, pTimestamps:Array<Dynamic>, pMaxDeviation:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_deferred_operation_max_concurrency_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_deferred_operation_result_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool;
+
+	@:cffi private static function lime_vk_get_descriptor_set_layout_binding_offset_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, layoutHigh:Int, layoutLow:Int, binding:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_descriptor_set_layout_size_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, layoutHigh:Int, layoutLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_combined_image_sampler_index_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageViewIndexHigh:Int, imageViewIndexLow:Int, samplerIndexHigh:Int, samplerIndexLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_group_present_capabilities_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_group_surface_present_modes_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_display_mode_properties_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_display_mode_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_display_plane_capabilities_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pDisplayPlaneInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_display_plane_capabilities_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, modeHigh:Int, modeLow:Int, planeIndex:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_display_plane_supported_displays_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, planeIndex:Int, pDisplays:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_drm_display_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, drmFd:Int, connectorId:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_fence_fd_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_generated_commands_memory_requirements_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_generated_commands_memory_requirements_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_gpa_device_clock_info_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_gpa_session_status_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_get_image_drm_format_modifier_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_view_address_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageViewHigh:Int, imageViewLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_view_handle_64_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_image_view_handle_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_memory_fd_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_memory_fd_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, handleType:Int, fd:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_partitioned_acceleration_structures_build_sizes_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_calibrateable_time_domains_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pTimeDomains:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_cooperative_matrix_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_cooperative_matrix_properties_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_cooperative_vector_properties_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_descriptor_size_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, descriptorType:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_display_plane_properties_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_display_plane_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_external_image_format_properties_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, type:Int, tiling:Int, usage:Int, flags:Int, externalHandleType:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_fragment_shading_rates_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pFragmentShadingRates:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_multisample_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, samples:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_optical_flow_image_formats_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pOpticalFlowImageFormatInfo:Array<Dynamic>, pImageFormatProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_present_rectangles_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pRects:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pCombinations:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_capabilities_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_capabilities_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pSurfaceInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_capabilities_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_formats_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pSurfaceInfo:Array<Dynamic>, pSurfaceFormats:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_formats_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pSurfaceFormats:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_present_modes_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pPresentModes:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_surface_support_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_video_format_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pVideoFormatInfo:Array<Dynamic>, pVideoFormatProperties:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_pipeline_indirect_device_address_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_pipeline_key_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pPipelineCreateInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_pipeline_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pPipelineInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_ray_tracing_shader_group_stack_size_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineHigh:Int, pipelineLow:Int, group:Int, groupShader:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_semaphore_fd_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_shader_module_identifier_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderModuleHigh:Int, shaderModuleLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_sleep_status_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_swapchain_counter_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, counter:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_swapchain_images_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSwapchainImages:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_swapchain_status_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):Bool;
+
+	@:cffi private static function lime_vk_get_swapchain_timing_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_get_video_session_memory_requirements_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int, pMemoryRequirements:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_import_fence_fd_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pImportFenceFdInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_import_semaphore_fd_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pImportSemaphoreFdInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_latency_sleep_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, signalSemaphoreHigh:Int, signalSemaphoreLow:Int, valueHigh:Int, valueLow:Int):Bool;
+
+	@:cffi private static function lime_vk_latency_sleep_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSleepInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_merge_validation_caches_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, dstCacheHigh:Int, dstCacheLow:Int, srcCacheCountIn:Int, pSrcCaches:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_queue_begin_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pLabelInfo:Array<Dynamic>, pLabelName:String):Bool;
+
+	@:cffi private static function lime_vk_queue_end_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int):Bool;
+
+	@:cffi private static function lime_vk_queue_insert_debug_utils_label_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pLabelInfo:Array<Dynamic>, pLabelName:String):Bool;
+
+	@:cffi private static function lime_vk_queue_notify_out_of_band_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, queueType:Int):Bool;
+
+	@:cffi private static function lime_vk_queue_notify_out_of_band_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pQueueTypeInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_register_device_event_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pDeviceEventInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_register_display_event_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, displayHigh:Int, displayLow:Int, pDisplayEventInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_release_captured_pipeline_data_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_release_display_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int):Bool;
+
+	@:cffi private static function lime_vk_release_profiling_lock_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Bool;
+
+	@:cffi private static function lime_vk_reset_gpa_session_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool;
+
+	@:cffi private static function lime_vk_set_debug_utils_object_name_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pNameInfo:Array<Dynamic>, pObjectName:String):Bool;
+
+	@:cffi private static function lime_vk_set_device_memory_priority_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int, priority:Int):Bool;
+
+	@:cffi private static function lime_vk_set_gpa_device_clock_mode_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Dynamic;
+
+	@:cffi private static function lime_vk_set_hdr_metadata_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainCountIn:Int, pSwapchains:Array<Dynamic>, pMetadata:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_set_latency_marker_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, frameIDHigh:Int, frameIDLow:Int, marker:Int):Bool;
+
+	@:cffi private static function lime_vk_set_latency_marker_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pLatencyMarkerInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_set_latency_sleep_mode_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, lowLatencyMode:Int, lowLatencyBoost:Int, minimumIntervalUs:Int):Bool;
+
+	@:cffi private static function lime_vk_set_latency_sleep_mode_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSleepModeInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_set_local_dimming_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapChainHigh:Int, swapChainLow:Int, localDimmingEnable:Int):Bool;
+
+	@:cffi private static function lime_vk_set_swapchain_present_timing_queue_size_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, size:Int):Bool;
+
+	@:cffi private static function lime_vk_shutdown_latency_device_legacy_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Bool;
+
+	@:cffi private static function lime_vk_unregister_custom_border_color_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, index:Int):Bool;
+
+	@:cffi private static function lime_vk_update_indirect_execution_set_pipeline_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int, executionSetWriteCountIn:Int, pExecutionSetWrites:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_update_indirect_execution_set_shader_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int, executionSetWriteCountIn:Int, pExecutionSetWrites:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_update_video_session_parameters_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionParametersHigh:Int, videoSessionParametersLow:Int, pUpdateInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_wait_for_present_2_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pPresentWait2Info:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_wait_for_present_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, presentIdHigh:Int, presentIdLow:Int, timeoutHigh:Int, timeoutLow:Int):Bool;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:cffi private static function lime_vk_cmd_push_constants_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushConstantsInfo:Array<Dynamic>, pValues:Bytes):Bool;
+
+	@:cffi private static function lime_vk_cmd_push_descriptor_set_with_template_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDescriptorSetWithTemplateInfo:Array<Dynamic>, pData:Bytes):Bool;
+
+	@:cffi private static function lime_vk_cmd_update_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDstRange:Array<Dynamic>, dstFlags:Int, pData:Bytes):Bool;
+
+	@:cffi private static function lime_vk_create_validation_cache_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pInitialData:Bytes):Dynamic;
+
+	@:cffi private static function lime_vk_debug_marker_set_object_tag_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pTagInfo:Array<Dynamic>, pTag:Bytes):Bool;
+
+	@:cffi private static function lime_vk_set_debug_utils_object_tag_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pTagInfo:Array<Dynamic>, pTag:Bytes):Bool;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:cffi private static function lime_vk_cmd_bind_descriptor_sets_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindDescriptorSetsInfo:Array<Dynamic>, pDescriptorSets:Array<Dynamic>, pDynamicOffsets:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_push_descriptor_set(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, set:Int, descriptorWriteCountIn:Int, pDescriptorWrites:Array<Dynamic>, pImageInfo:Array<Dynamic>, pBufferInfo:Array<Dynamic>, pTexelBufferView:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_push_descriptor_set_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDescriptorSetInfo:Array<Dynamic>, pDescriptorWrites:Array<Dynamic>, pDescriptorWrites_pImageInfo:Array<Dynamic>, pDescriptorWrites_pBufferInfo:Array<Dynamic>, pDescriptorWrites_pTexelBufferView:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_push_descriptor_set_with_template(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, descriptorUpdateTemplateHigh:Int, descriptorUpdateTemplateLow:Int, layoutHigh:Int, layoutLow:Int, set:Int, pData:Bytes):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_rendering_attachment_locations(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLocationInfo:Array<Dynamic>, pColorAttachmentLocations:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_rendering_input_attachment_indices(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInputAttachmentIndexInfo:Array<Dynamic>, pColorAttachmentInputIndices:Array<Dynamic>, pDepthInputAttachmentIndex:Array<Dynamic>, pStencilInputAttachmentIndex:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_copy_image_to_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyImageToImageInfo:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_copy_image_to_memory(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyImageToMemoryInfo:Array<Dynamic>, pRegions:Array<Dynamic>, pRegionsHostData:Bytes):Bool;
+
+	@:cffi private static function lime_vk_copy_memory_to_image(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyMemoryToImageInfo:Array<Dynamic>, pRegions:Array<Dynamic>, pRegionsHostData:Bytes):Bool;
+
+	@:cffi private static function lime_vk_get_device_image_subresource_layout(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:Array<Dynamic>, pCreateInfo:Array<Dynamic>, pCreateInfo_pQueueFamilyIndices:Array<Dynamic>, pSubresource:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_rendering_area_granularity(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pRenderingAreaInfo:Array<Dynamic>, pColorAttachmentFormats:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_map_memory_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pMemoryMapInfo:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_anti_lag_update_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pData:Array<Dynamic>, pPresentationInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_bind_acceleration_structure_memory_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bindInfoCountIn:Int, pBindInfos:Array<Dynamic>, pDeviceIndices:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_begin_gpa_sample_amd(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int, pGpaSampleBeginInfo:Array<Dynamic>, pPerfCounters:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_cmd_begin_video_coding_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBeginInfo:Array<Dynamic>, pReferenceSlots:Array<Dynamic>, pReferenceSlots_pPictureResource:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_image_to_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_to_image_indirect_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryToImageIndirectInfo:Array<Dynamic>, pImageSubresources:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_copy_memory_to_image_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_decode_video_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDecodeInfo:Array<Dynamic>, pSetupReferenceSlot:Array<Dynamic>, pSetupReferenceSlot_pPictureResource:Array<Dynamic>, pReferenceSlots:Array<Dynamic>, pReferenceSlots_pPictureResource:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_decompress_memory_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDecompressMemoryInfoEXT:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_encode_video_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pEncodeInfo:Array<Dynamic>, pSetupReferenceSlot:Array<Dynamic>, pSetupReferenceSlot_pPictureResource:Array<Dynamic>, pReferenceSlots:Array<Dynamic>, pReferenceSlots_pPictureResource:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_execute_generated_commands_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, isPreprocessed:Int, pGeneratedCommandsInfo:Array<Dynamic>, pStreams:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_optical_flow_execute_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sessionHigh:Int, sessionLow:Int, pExecuteInfo:Array<Dynamic>, pRegions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_preprocess_generated_commands_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pGeneratedCommandsInfo:Array<Dynamic>, pStreams:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_push_data_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDataInfo:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_checkpoint_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCheckpointMarker:Bytes):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_coarse_sample_order_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sampleOrderType:Int, customSampleOrderCountIn:Int, pCustomSampleOrders:Array<Dynamic>, pSampleLocations:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_descriptor_buffer_offsets_2_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pSetDescriptorBufferOffsetsInfo:Array<Dynamic>, pBufferIndices:Array<Dynamic>, pOffsets:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_sample_locations_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pSampleLocationsInfo:Array<Dynamic>, pSampleLocations:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_viewport_shading_rate_palette_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pShadingRatePalettes:Array<Dynamic>, pShadingRatePaletteEntries:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_create_cu_module_nvx(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pData:Bytes):Dynamic;
+
+	@:cffi private static function lime_vk_create_indirect_commands_layout_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pTokens:Array<Dynamic>, pTokens_pIndexTypes:Array<Dynamic>, pTokens_pIndexTypeValues:Array<Dynamic>, pStreamStrides:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_shared_swapchains_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainCountIn:Int, pCreateInfos:Array<Dynamic>, pQueueFamilyIndices:Array<Dynamic>, pSwapchains:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_create_swapchain_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pQueueFamilyIndices:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_acceleration_structure_compatibility_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pVersionInfo:Array<Dynamic>, pVersionData:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_device_micromap_compatibility_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pVersionInfo:Array<Dynamic>, pVersionData:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_memory_host_pointer_properties_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, handleType:Int, pHostPointer:Bytes):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_queue_family_performance_query_passes_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pPerformanceQueryCreateInfo:Array<Dynamic>, pCounterIndices:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_physical_device_video_encode_quality_level_properties_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pQualityLevelInfo:Array<Dynamic>, pVideoProfile:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_get_shader_module_create_info_identifier_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:Array<Dynamic>, pCode:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_release_swapchain_images_khr(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pReleaseInfo:Array<Dynamic>, pImageIndices:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_cmd_bind_index_buffer_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, sizeHigh:Int, sizeLow:Int, indexType:Int):Bool;
+
+	@:cffi private static function lime_vk_cmd_set_line_stipple(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, lineStippleFactor:Int, lineStipplePattern:Int):Bool;
+
+	@:cffi private static function lime_vk_get_image_subresource_layout_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int, pSubresource:Array<Dynamic>):Dynamic;
+
+	@:cffi private static function lime_vk_transition_image_layout(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, transitionCountIn:Int, pTransitions:Array<Dynamic>):Bool;
+
+	@:cffi private static function lime_vk_unmap_memory_2(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pMemoryUnmapInfo:Array<Dynamic>):Bool;
+
 	#end
 
 	@:cffi private static function lime_vk_get_last_error():Dynamic;
@@ -663,6 +3588,8 @@ class NativeCFFI
 	@:cffi private static function lime_vulkan_renderer_render(handle:Dynamic, red:Float, green:Float, blue:Float, alpha:Float):Bool;
 
 	@:cffi private static function lime_vulkan_renderer_resize(handle:Dynamic):Bool;
+
+	@:cffi private static function lime_glslang_compile(stage:Int, source:String):Array<Int>;
 
 	@:cffi private static function lime_window_get_width(handle:Dynamic):Int;
 
@@ -697,6 +3624,16 @@ class NativeCFFI
 	@:cffi private static function lime_window_set_mouse_lock(handle:Dynamic, mouseLock:Bool):Void;
 
 	@:cffi private static function lime_window_set_opacity(handle:Dynamic, value:Float):Void;
+
+	@:cffi private static function lime_window_set_progress_state(handle:Dynamic, state:Int):Void;
+
+	@:cffi private static function lime_window_set_progress_value(handle:Dynamic, value:Float):Void;
+
+	@:cffi private static function lime_window_set_mouse_rect(handle:Dynamic, rect:Dynamic):Void;
+
+	@:cffi private static function lime_window_set_cursor_image(handle:Dynamic, buffer:Dynamic):Void;
+
+	@:cffi private static function lime_window_set_blur(handle:Dynamic, mode:Int, tint:Int):Void;
 
 	@:cffi private static function lime_window_set_resizable(handle:Dynamic, resizable:Bool):Bool;
 
@@ -736,6 +3673,7 @@ class NativeCFFI
 		"ooo", false));
 	private static var lime_audio_load_file = new cpp.Callable<cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_audio_load_file", "ooo",
 		false));
+	#if (lime_sdl_sound && !macro)
 	private static var lime_sdl_sound_get_info_from_bytes = new cpp.Callable<cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_sdl_sound_get_info_from_bytes", "oo", false));
 	private static var lime_sdl_sound_get_info_from_file = new cpp.Callable<String->cpp.Object>(cpp.Prime._loadPrime("lime",
@@ -752,6 +3690,7 @@ class NativeCFFI
 		false));
 	private static var lime_sdl_sound_stream_clear = new cpp.Callable<cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_sdl_sound_stream_clear", "ov",
 		false));
+	#end
 	private static var lime_bytes_from_data_pointer = new cpp.Callable<Float->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_bytes_from_data_pointer", "dioo", false));
 	private static var lime_bytes_get_data_pointer = new cpp.Callable<cpp.Object->Float>(cpp.Prime._loadPrime("lime", "lime_bytes_get_data_pointer", "od",
@@ -826,8 +3765,6 @@ class NativeCFFI
 	private static var lime_font_render_glyphs = new cpp.Callable<cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_font_render_glyphs", "oooo", false));
 	private static var lime_font_set_size = new cpp.Callable<cpp.Object->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_font_set_size", "oiiv", false));
-	private static var lime_font_set_stem_darkening = new cpp.Callable<cpp.Object->Bool->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_font_set_stem_darkening", "obv", false));
-	private static var lime_font_set_stem_darkening_parameters = new cpp.Callable<cpp.Object->cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_font_set_stem_darkening_parameters", "oov", false));
 	private static var lime_gamepad_add_mappings = new cpp.Callable<cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_gamepad_add_mappings", "ov",
 		false));
 	private static var lime_gamepad_get_device_guid = new cpp.Callable<Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_gamepad_get_device_guid", "io",
@@ -836,6 +3773,10 @@ class NativeCFFI
 		false));
 	private static var lime_gamepad_rumble = new cpp.Callable<Int->Float->Float->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_gamepad_rumble", "iddiv",
 		false));
+	private static var lime_gamepad_rumble_triggers = new cpp.Callable<Int->Float->Float->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_gamepad_rumble_triggers", "iddiv", false));
+	private static var lime_gamepad_set_led = new cpp.Callable<Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_gamepad_set_led",
+		"iiiiv", false));
 	private static var lime_gamepad_event_manager_register = new cpp.Callable<cpp.Object->cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime",
 		"lime_gamepad_event_manager_register", "oov", false));
 	private static var lime_gzip_compress = new cpp.Callable<cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_gzip_compress", "ooo",
@@ -931,6 +3872,8 @@ class NativeCFFI
 		false));
 	private static var lime_system_get_platform_version = new cpp.Callable<Void->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_system_get_platform_version",
 		"o", false));
+	private static var lime_system_get_theme = new cpp.Callable<Void->Int>(cpp.Prime._loadPrime("lime", "lime_system_get_theme", "i", false));
+	private static var lime_system_is_tablet = new cpp.Callable<Void->Bool>(cpp.Prime._loadPrime("lime", "lime_system_is_tablet", "b", false));
 	private static var lime_system_get_timer = new cpp.Callable<Void->Float>(cpp.Prime._loadPrime("lime", "lime_system_get_timer", "d", false));
 	private static var lime_system_open_file = new cpp.Callable<String->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_system_open_file", "sv", false));
 	private static var lime_system_open_url = new cpp.Callable<String->String->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_system_open_url", "ssv", false));
@@ -963,6 +3906,12 @@ class NativeCFFI
 	private static var lime_window_get_id = new cpp.Callable<cpp.Object->Int>(cpp.Prime._loadPrime("lime", "lime_window_get_id", "oi", false));
 	private static var lime_window_get_mouse_lock = new cpp.Callable<cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_window_get_mouse_lock", "ob", false));
 	private static var lime_window_get_opacity = new cpp.Callable<cpp.Object->Float>(cpp.Prime._loadPrime("lime", "lime_window_get_opacity", "od", false));
+	private static var lime_window_get_progress_state = new cpp.Callable<cpp.Object->Int>(cpp.Prime._loadPrime("lime", "lime_window_get_progress_state",
+		"oi", false));
+	private static var lime_window_get_progress_value = new cpp.Callable<cpp.Object->Float>(cpp.Prime._loadPrime("lime",
+		"lime_window_get_progress_value", "od", false));
+	private static var lime_window_get_safe_area = new cpp.Callable<cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_window_get_safe_area",
+		"oo", false));
 	private static var lime_window_get_scale = new cpp.Callable<cpp.Object->Float>(cpp.Prime._loadPrime("lime", "lime_window_get_scale", "od", false));
 	private static var lime_window_get_text_input_enabled = new cpp.Callable<cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_window_get_text_input_enabled", "ob", false));
@@ -1005,10 +3954,12 @@ class NativeCFFI
 		"lime_vk_end_command_buffer", "oiiiiiib", false));
 	private static var lime_vk_reset_command_buffer = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_vk_reset_command_buffer", "oiiiiiiib", false));
-	private static var lime_vk_create_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
-		"lime_vk_create_semaphore", "oiiiio", false));
-	private static var lime_vk_destroy_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
-		"lime_vk_destroy_semaphore", "oiiiiiiv", false));
+	private static var lime_vk_create_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_semaphore", "oiiiio", false));
+	private static var lime_vk_create_timeline_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_timeline_semaphore", "oiiiiiio", false));
+	private static var lime_vk_get_semaphore_counter_value = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_get_semaphore_counter_value", "oiiiiiio", false));
+	private static var lime_vk_signal_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_signal_semaphore", "oiiiiiiiib", false));
+	private static var lime_vk_wait_semaphores = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_wait_semaphores", "oiiiioiib", false));
+	private static var lime_vk_destroy_semaphore = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_vk_destroy_semaphore", "oiiiiiiv", false));
 	private static var lime_vk_create_fence = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_vk_create_fence", "oiiiiio", false));
 	private static var lime_vk_destroy_fence = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
@@ -1019,6 +3970,8 @@ class NativeCFFI
 		"lime_vk_reset_fence", "oiiiiiib", false));
 	private static var lime_vk_queue_submit = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_vk_queue_submit", "oiiiiiiiiiib", false));
+	private static var lime_vk_queue_bind_sparse = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->
+		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_queue_bind_sparse", "oiiiiiiiiiiob", false));
 	private static var lime_vk_allocate_memory = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
 		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_allocate_memory", "oiiiiiiiiiio", false));
 	private static var lime_vk_free_memory = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
@@ -1047,10 +4000,14 @@ class NativeCFFI
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_bind_buffer_memory", "oiiiiiiiiiib", false));
 	private static var lime_vk_create_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
 		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_image", "oiiiiiiiiiiiiiio", false));
+	private static var lime_vk_create_image_ex = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
+		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_image_ex", "oiiiiiiiiiiiiiiio", false));
 	private static var lime_vk_destroy_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
 		"lime_vk_destroy_image", "oiiiiiiv", false));
 	private static var lime_vk_get_image_memory_requirements = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->
 		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_get_image_memory_requirements", "oiiiiiio", false));
+	private static var lime_vk_get_image_subresource_layout = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->
+		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_get_image_subresource_layout", "oiiiiiiiiio", false));
 	private static var lime_vk_bind_image_memory = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_bind_image_memory", "oiiiiiiiiiib", false));
 	private static var lime_vk_create_swapchain = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
@@ -1097,6 +4054,8 @@ class NativeCFFI
 		"lime_vk_reset_descriptor_pool", "oiiiiiiib", false));
 	private static var lime_vk_allocate_descriptor_set = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->
 		cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_allocate_descriptor_set", "oiiiiiiiio", false));
+	private static var lime_vk_free_descriptor_set = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_free_descriptor_set", "oiiiiiiiib", false));
 	private static var lime_vk_update_descriptor_set_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_update_descriptor_set_image", "oiiiiiiiiiiiiib", false));
 	private static var lime_vk_update_descriptor_set_buffer = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
@@ -1123,6 +4082,10 @@ class NativeCFFI
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_begin_render_pass", "oiiiiiiiiiioob", false));
 	private static var lime_vk_cmd_end_render_pass = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_vk_cmd_end_render_pass", "oiiiiiib", false));
+	private static var lime_vk_cmd_begin_rendering = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->
+		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_begin_rendering", "oiiiiiiiioob", false));
+	private static var lime_vk_cmd_end_rendering = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_rendering", "oiiiiiib", false));
 	private static var lime_vk_cmd_bind_pipeline = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_vk_cmd_bind_pipeline", "oiiiiiiiiib", false));
 	private static var lime_vk_cmd_bind_descriptor_set = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->
@@ -1155,6 +4118,10 @@ class NativeCFFI
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_copy_image_to_buffer_region", "oiiiiiiiiiiob", false));
 	private static var lime_vk_cmd_pipeline_barrier_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_pipeline_barrier_image", "oiiiiiiiiob", false));
+	private static var lime_vk_cmd_pipeline_barrier2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->
+		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_pipeline_barrier2", "oiiiiiiob", false));
+	private static var lime_vk_cmd_pipeline_barrier_image2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->
+		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_pipeline_barrier_image2", "oiiiiiiiiob", false));
 	private static var lime_vk_cmd_clear_color_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_clear_color_image", "oiiiiiiiiiiob", false));
 	private static var lime_vk_cmd_clear_depth_stencil_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->
@@ -1165,6 +4132,3233 @@ class NativeCFFI
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_blit_image", "oiiiiiiiiiiob", false));
 	private static var lime_vk_cmd_push_constants = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->
 		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_push_constants", "oiiiiiiiioob", false));
+	private static var lime_vk_create_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_event", "oiiiiio", false));
+	private static var lime_vk_destroy_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_vk_destroy_event", "oiiiiiiv", false));
+	private static var lime_vk_get_event_status = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int>(cpp.Prime._loadPrime("lime", "lime_vk_get_event_status", "oiiiiiii", false));
+	private static var lime_vk_get_fence_status = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int>(cpp.Prime._loadPrime("lime", "lime_vk_get_fence_status", "oiiiiiii", false));
+	private static var lime_vk_cmd_set_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_event", "oiiiiiiiiib", false));
+	private static var lime_vk_cmd_reset_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_reset_event", "oiiiiiiiiib", false));
+	private static var lime_vk_cmd_wait_events = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_wait_events", "oiiiiiiiiob", false));
+	private static var lime_vk_cmd_dispatch = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_dispatch", "oiiiiiiiiib", false));
+	private static var lime_vk_cmd_dispatch_indirect = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_dispatch_indirect", "oiiiiiiiiiib", false));
+	private static var lime_vk_cmd_next_subpass = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_next_subpass", "oiiiiiiib", false));
+	private static var lime_vk_cmd_execute_commands = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_execute_commands", "oiiiiiiob", false));
+	private static var lime_vk_cmd_set_line_width = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Float->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_line_width", "oiiiiiidb", false));
+	private static var lime_vk_cmd_set_depth_bias = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Float->Float->Float->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_depth_bias", "oiiiiiidddb", false));
+	private static var lime_vk_cmd_set_blend_constants = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Float->Float->Float->Float->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_blend_constants", "oiiiiiiddddb", false));
+	private static var lime_vk_cmd_set_depth_bounds = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Float->Float->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_depth_bounds", "oiiiiiiddb", false));
+	private static var lime_vk_cmd_set_stencil_compare_mask = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_stencil_compare_mask", "oiiiiiiiib", false));
+	private static var lime_vk_cmd_set_stencil_write_mask = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_stencil_write_mask", "oiiiiiiiib", false));
+	private static var lime_vk_cmd_set_stencil_reference = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_set_stencil_reference", "oiiiiiiiib", false));
+	private static var lime_vk_create_compute_pipeline = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_compute_pipeline", "oiiiiiiiiiiiio", false));
+	private static var lime_vk_cmd_copy_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_copy_image", "oiiiiiiiiiiob", false));
+	private static var lime_vk_cmd_resolve_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_resolve_image", "oiiiiiiiiiiob", false));
+	private static var lime_vk_cmd_update_buffer = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_update_buffer", "oiiiiiiiiiiob", false));
+	private static var lime_vk_cmd_fill_buffer = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_fill_buffer", "oiiiiiiiiiiiiib", false));
+	private static var lime_vk_cmd_begin_query = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_begin_query", "oiiiiiiiiiib", false));
+	private static var lime_vk_cmd_end_query = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_end_query", "oiiiiiiiiib", false));
+	private static var lime_vk_cmd_reset_query_pool = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_reset_query_pool", "oiiiiiiiiiib", false));
+	private static var lime_vk_cmd_write_timestamp = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_write_timestamp", "oiiiiiiiiiib", false));
+	private static var lime_vk_cmd_copy_query_pool_results = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->
+		Bool>(cpp.Prime._loadPrime("lime", "lime_vk_cmd_copy_query_pool_results", "oiiiiiiiiiiob", false));
+	private static var lime_vk_create_query_pool = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_create_query_pool", "oiiiiiio", false));
+	private static var lime_vk_destroy_query_pool = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_vk_destroy_query_pool", "oiiiiiiv", false));
+	private static var lime_vk_reset_query_pool = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_reset_query_pool", "oiiiiiiiib", false));
+	private static var lime_vk_get_query_pool_results = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_get_query_pool_results", "oiiiiiioiiiib", false));
+	private static var lime_vk_wait_for_fences = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime", "lime_vk_wait_for_fences", "oiiiioiib", false));
+	private static var lime_vk_get_physical_device_features = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_features", "oiiiio", false));
+
+	private static var lime_vk_get_physical_device_format_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_format_properties", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_image_format_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_image_format_properties", "oiiiiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_memory_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_memory_properties", "oiiiio", false));
+
+	private static var lime_vk_get_physical_device_sparse_image_format_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_sparse_image_format_properties", "oiiiiiiiiio", false));
+
+	private static var lime_vk_create_buffer_view = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_buffer_view", "oiiiiiiiiio", false));
+
+	private static var lime_vk_destroy_buffer_view = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_buffer_view", "oiiiiiiv", false));
+
+	private static var lime_vk_get_device_queue = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_queue", "oiiiiiio", false));
+
+	private static var lime_vk_get_device_memory_commitment = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_memory_commitment", "oiiiiiio", false));
+
+	private static var lime_vk_get_image_sparse_memory_requirements = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_sparse_memory_requirements", "oiiiiiio", false));
+
+	private static var lime_vk_merge_pipeline_caches = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_merge_pipeline_caches", "oiiiiiiob", false));
+
+	private static var lime_vk_get_render_area_granularity = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_render_area_granularity", "oiiiiiio", false));
+
+	private static var lime_vk_set_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_event", "oiiiiiib", false));
+
+	private static var lime_vk_reset_event = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_reset_event", "oiiiiiib", false));
+
+	private static var lime_vk_enumerate_instance_extension_properties = new cpp.Callable<cpp.Object->String->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_instance_extension_properties", "oso", false));
+
+	private static var lime_vk_enumerate_instance_layer_properties = new cpp.Callable<cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_instance_layer_properties", "oo", false));
+
+	private static var lime_vk_enumerate_device_extension_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->String->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_device_extension_properties", "oiiiiso", false));
+
+	private static var lime_vk_enumerate_device_layer_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_device_layer_properties", "oiiiio", false));
+
+	private static var lime_vk_enumerate_instance_version = new cpp.Callable<cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_instance_version", "oo", false));
+
+	private static var lime_vk_get_physical_device_features2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_features2", "oiiiioo", false));
+
+	private static var lime_vk_get_descriptor_indexing_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_descriptor_indexing_properties", "oiiiio", false));
+
+	private static var lime_vk_get_vulkan12_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_vulkan12_properties", "oiiiio", false));
+	private static var lime_vk_get_inline_uniform_block_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_inline_uniform_block_properties", "oiiiio", false));
+	private static var lime_vk_get_subgroup_size_control_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_subgroup_size_control_properties", "oiiiio", false));
+
+	private static var lime_vk_get_buffer_memory_requirements2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_buffer_memory_requirements2", "oiiiiiio", false));
+
+	private static var lime_vk_get_image_memory_requirements2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_memory_requirements2", "oiiiiiio", false));
+
+	private static var lime_vk_bind_buffer_memory2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_bind_buffer_memory2", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_bind_image_memory2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_bind_image_memory2", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_get_device_queue2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_queue2", "oiiiiiiio", false));
+
+	private static var lime_vk_get_descriptor_set_layout_support = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_descriptor_set_layout_support", "oiiiioo", false));
+
+	private static var lime_vk_get_buffer_device_address = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_buffer_device_address", "oiiiiiio", false));
+
+	private static var lime_vk_get_buffer_opaque_capture_address = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_buffer_opaque_capture_address", "oiiiiiio", false));
+
+	private static var lime_vk_get_device_memory_opaque_capture_address = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_memory_opaque_capture_address", "oiiiiiio", false));
+
+	private static var lime_vk_cmd_draw_indirect_count = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indirect_count", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_indexed_indirect_count = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indexed_indirect_count", "oiiiiiiob", false));
+
+	private static var lime_vk_trim_command_pool = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_vk_trim_command_pool", "oiiiiiiiv", false));
+
+	private static var lime_vk_create_render_pass2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_render_pass2", "oiiiioo", false));
+
+	private static var lime_vk_cmd_begin_render_pass2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_render_pass2", "oiiiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_next_subpass2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_next_subpass2", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_end_render_pass2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_render_pass2", "oiiiiiib", false));
+
+	private static var lime_vk_create_descriptor_update_template = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_descriptor_update_template", "oiiiioo", false));
+
+	private static var lime_vk_destroy_descriptor_update_template = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_descriptor_update_template", "oiiiiiiv", false));
+
+	private static var lime_vk_update_descriptor_set_with_template = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_update_descriptor_set_with_template", "oiiiiiiiioiib", false));
+
+	private static var lime_vk_get_physical_device_external_buffer_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_external_buffer_properties", "oiiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_external_fence_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_external_fence_properties", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_external_semaphore_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_external_semaphore_properties", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_properties2", "oiiiio", false));
+
+	private static var lime_vk_get_physical_device_format_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_format_properties2", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_image_format_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_image_format_properties2", "oiiiiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_memory_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_memory_properties2", "oiiiio", false));
+
+	private static var lime_vk_get_physical_device_queue_family_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_queue_family_properties2", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_sparse_image_format_properties2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_sparse_image_format_properties2", "oiiiiiiiiio", false));
+
+	private static var lime_vk_create_sampler_ycbcr_conversion = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_sampler_ycbcr_conversion", "oiiiiiiiiiiiiiiio", false));
+
+	private static var lime_vk_destroy_sampler_ycbcr_conversion = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_sampler_ycbcr_conversion", "oiiiiiiv", false));
+
+	private static var lime_vk_enumerate_physical_device_groups = new cpp.Callable<cpp.Object->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_enumerate_physical_device_groups", "oiio", false));
+
+	private static var lime_vk_get_device_group_peer_memory_features = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_group_peer_memory_features", "oiiiiiiio", false));
+
+	private static var lime_vk_cmd_set_device_mask = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_device_mask", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_dispatch_base = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_dispatch_base", "oiiiiiiiiiiiib", false));
+
+	private static var lime_vk_get_image_sparse_memory_requirements2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_sparse_memory_requirements2", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_surface_capabilities = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_capabilities", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_surface_formats = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_formats", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_surface_present_modes = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_present_modes", "oiiiiiio", false));
+
+	private static var lime_vk_create_device_with_features = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_device_with_features", "oiiiiiooo", false));
+
+	private static var lime_vk_allocate_memory_ex = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_allocate_memory_ex", "oiiiiiiiiiiio", false));
+
+	private static var lime_vk_cmd_set_cull_mode = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_cull_mode", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_front_face = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_front_face", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_primitive_topology = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_primitive_topology", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_test_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_test_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_write_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_write_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_compare_op = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_compare_op", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_bounds_test_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_bounds_test_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_stencil_test_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_stencil_test_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_stencil_op = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_stencil_op", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_rasterizer_discard_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_rasterizer_discard_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_bias_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_bias_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_primitive_restart_enable = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_primitive_restart_enable", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_viewport_with_count = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_viewport_with_count", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_scissor_with_count = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_scissor_with_count", "oiiiiiiob", false));
+
+	private static var lime_vk_get_physical_device_tool_properties = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_tool_properties", "oiiiio", false));
+
+	private static var lime_vk_cmd_bind_vertex_buffers_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_vertex_buffers_2", "oiiiiiiiob", false));
+
+	private static var lime_vk_create_private_data_slot = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_private_data_slot", "oiiiiio", false));
+
+	private static var lime_vk_destroy_private_data_slot = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_private_data_slot", "oiiiiiiv", false));
+
+	private static var lime_vk_set_private_data = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_private_data", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_get_private_data = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_private_data", "oiiiiiiiiio", false));
+
+	private static var lime_vk_cmd_copy_buffer_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_buffer_2", "oiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_image_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_image_2", "oiiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_buffer_to_image_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_buffer_to_image_2", "oiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_image_to_buffer_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_image_to_buffer_2", "oiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_blit_image_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_blit_image_2", "oiiiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_resolve_image_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_resolve_image_2", "oiiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_write_timestamp_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_timestamp_2", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_queue_submit_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_submit_2", "oiiiiiiioooiib", false));
+
+	private static var lime_vk_cmd_set_event_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_event_2", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_reset_event_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_reset_event_2", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_wait_events_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_wait_events_2", "oiiiiiioob", false));
+
+	private static var lime_vk_get_device_buffer_memory_requirements = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_buffer_memory_requirements", "oiiiioo", false));
+
+	private static var lime_vk_get_device_image_memory_requirements = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_image_memory_requirements", "oiiiioo", false));
+
+	private static var lime_vk_get_device_image_sparse_memory_requirements = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_image_sparse_memory_requirements", "oiiiioo", false));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_acquire_drm_display_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_acquire_drm_display_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_acquire_next_image_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_acquire_next_image_2_khr", "oiiiioo", false));
+
+	private static var lime_vk_acquire_next_image_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_acquire_next_image_khr", "oiiiiiiiiiiiio", false));
+
+	private static var lime_vk_acquire_profiling_lock_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_acquire_profiling_lock_khr", "oiiiiob", false));
+
+	private static var lime_vk_bind_optical_flow_session_image_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_bind_optical_flow_session_image_nv", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_bind_video_session_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_bind_video_session_memory_khr", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_begin_conditional_rendering_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_conditional_rendering_2_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_begin_conditional_rendering_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_conditional_rendering_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_begin_custom_resolve_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_custom_resolve_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_begin_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_debug_utils_label_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_cmd_begin_gpa_session_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_gpa_session_amd", "oiiiiiiiib", false));
+
+	private static var lime_vk_cmd_begin_query_indexed_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_query_indexed_ext", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_begin_transform_feedback_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_transform_feedback_2_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_begin_transform_feedback_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_transform_feedback_ext", "oiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_bind_descriptor_buffers_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_descriptor_buffers_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_index_buffer_3_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_index_buffer_3_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_pipeline_shader_group_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_pipeline_shader_group_nv", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_bind_resource_heap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_resource_heap_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_sampler_heap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_sampler_heap_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_shaders_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_shaders_ext", "oiiiiiiioob", false));
+
+	private static var lime_vk_cmd_bind_shading_rate_image_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_shading_rate_image_nv", "oiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_bind_transform_feedback_buffers_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_transform_feedback_buffers_2_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_bind_transform_feedback_buffers_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_transform_feedback_buffers_ext", "oiiiiiiiiooob", false));
+
+	private static var lime_vk_cmd_bind_vertex_buffers_3_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_vertex_buffers_3_khr", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_build_partitioned_acceleration_structures_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_build_partitioned_acceleration_structures_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_control_video_coding_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_control_video_coding_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_acceleration_structure_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_acceleration_structure_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_acceleration_structure_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_acceleration_structure_nv", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_copy_gpa_session_results_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_gpa_session_results_amd", "oiiiiiiiib", false));
+
+	private static var lime_vk_cmd_copy_memory_indirect_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_indirect_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_memory_indirect_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_indirect_nv", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_copy_memory_to_image_indirect_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_to_image_indirect_nv", "oiiiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_micromap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_micromap_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_copy_query_pool_results_to_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_query_pool_results_to_memory_khr", "oiiiiiiiiiioiib", false));
+
+	private static var lime_vk_cmd_debug_marker_begin_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_debug_marker_begin_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_cmd_debug_marker_end_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_debug_marker_end_ext", "oiiiiiib", false));
+
+	private static var lime_vk_cmd_debug_marker_insert_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_debug_marker_insert_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_cmd_decompress_memory_indirect_count_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_decompress_memory_indirect_count_ext", "oiiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_decompress_memory_indirect_count_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_decompress_memory_indirect_count_nv", "oiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_decompress_memory_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_decompress_memory_nv", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_dispatch_indirect_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_dispatch_indirect_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_indexed_indirect_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indexed_indirect_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_indexed_indirect_count_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indexed_indirect_count_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_indirect_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indirect_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_indirect_byte_count_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indirect_byte_count_2_ext", "oiiiiiiiioiib", false));
+
+	private static var lime_vk_cmd_draw_indirect_byte_count_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indirect_byte_count_ext", "oiiiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_draw_indirect_count_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_indirect_count_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_ext", "oiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_2_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_ext", "oiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_nv", "oiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_draw_mesh_tasks_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_nv", "oiiiiiiiib", false));
+
+	private static var lime_vk_cmd_draw_multi_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_multi_ext", "oiiiiiiioiiib", false));
+
+	private static var lime_vk_cmd_draw_multi_indexed_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_multi_indexed_ext", "oiiiiiiioiiiob", false));
+
+	private static var lime_vk_cmd_end_conditional_rendering_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_conditional_rendering_ext", "oiiiiiib", false));
+
+	private static var lime_vk_cmd_end_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_debug_utils_label_ext", "oiiiiiib", false));
+
+	private static var lime_vk_cmd_end_gpa_sample_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_gpa_sample_amd", "oiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_end_gpa_session_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_gpa_session_amd", "oiiiiiiiib", false));
+
+	private static var lime_vk_cmd_end_query_indexed_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_query_indexed_ext", "oiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_end_rendering_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_rendering_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_end_transform_feedback_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_transform_feedback_2_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_end_transform_feedback_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_transform_feedback_ext", "oiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_end_video_coding_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_end_video_coding_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_execute_generated_commands_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_execute_generated_commands_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_fill_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_fill_memory_khr", "oiiiiiioiib", false));
+
+	private static var lime_vk_cmd_insert_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_insert_debug_utils_label_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_cmd_preprocess_generated_commands_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_preprocess_generated_commands_ext", "oiiiiiioiib", false));
+
+	private static var lime_vk_cmd_set_alpha_to_coverage_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_alpha_to_coverage_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_alpha_to_one_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_alpha_to_one_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_attachment_feedback_loop_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_attachment_feedback_loop_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_color_blend_advanced_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_color_blend_advanced_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_color_blend_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_color_blend_enable_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_color_blend_equation_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_color_blend_equation_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_color_write_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_color_write_enable_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_color_write_mask_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_color_write_mask_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_compute_occupancy_priority_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_compute_occupancy_priority_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_conservative_rasterization_mode_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_conservative_rasterization_mode_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_coverage_modulation_mode_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_modulation_mode_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_coverage_modulation_table_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_modulation_table_enable_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_coverage_modulation_table_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_modulation_table_nv", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_coverage_reduction_mode_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_reduction_mode_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_coverage_to_color_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_to_color_enable_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_coverage_to_color_location_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coverage_to_color_location_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_bias_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_bias_2_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_depth_clamp_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_clamp_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_clamp_range_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_clamp_range_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_depth_clip_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_clip_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_depth_clip_negative_one_to_one_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_depth_clip_negative_one_to_one_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_descriptor_buffer_offsets_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_descriptor_buffer_offsets_ext", "oiiiiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_set_discard_rectangle_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_discard_rectangle_ext", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_discard_rectangle_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_discard_rectangle_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_discard_rectangle_mode_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_discard_rectangle_mode_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_exclusive_scissor_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_exclusive_scissor_enable_nv", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_exclusive_scissor_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_exclusive_scissor_nv", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_extra_primitive_overestimation_size_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_extra_primitive_overestimation_size_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_fragment_shading_rate_enum_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_fragment_shading_rate_enum_nv", "oiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_fragment_shading_rate_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_fragment_shading_rate_khr", "oiiiiiioiib", false));
+
+	private static var lime_vk_cmd_set_line_rasterization_mode_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_line_rasterization_mode_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_line_stipple_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_line_stipple_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_logic_op_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_logic_op_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_logic_op_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_logic_op_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_patch_control_points_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_patch_control_points_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_polygon_mode_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_polygon_mode_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_primitive_restart_index_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_primitive_restart_index_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_provoking_vertex_mode_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_provoking_vertex_mode_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_rasterization_samples_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_rasterization_samples_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_rasterization_stream_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_rasterization_stream_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_representative_fragment_test_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_representative_fragment_test_enable_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_sample_locations_enable_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_sample_locations_enable_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_sample_mask_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_sample_mask_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_shading_rate_image_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_shading_rate_image_enable_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_tessellation_domain_origin_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_tessellation_domain_origin_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_vertex_input_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_vertex_input_ext", "oiiiiiiioiob", false));
+
+	private static var lime_vk_cmd_set_viewport_swizzle_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_viewport_swizzle_nv", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_viewport_w_scaling_enable_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_viewport_w_scaling_enable_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_viewport_w_scaling_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_viewport_w_scaling_nv", "oiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_trace_rays_indirect_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_trace_rays_indirect_2_khr", "oiiiiiiiib", false));
+
+	private static var lime_vk_cmd_trace_rays_indirect_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_trace_rays_indirect_khr", "oiiiiiiooooiib", false));
+
+	private static var lime_vk_cmd_trace_rays_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_trace_rays_khr", "oiiiiiiooooiiib", false));
+
+	private static var lime_vk_cmd_update_pipeline_indirect_buffer_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_update_pipeline_indirect_buffer_nv", "oiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_write_acceleration_structures_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_acceleration_structures_properties_khr", "oiiiiiiioiiiib", false));
+
+	private static var lime_vk_cmd_write_acceleration_structures_properties_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_acceleration_structures_properties_nv", "oiiiiiiioiiiib", false));
+
+	private static var lime_vk_cmd_write_buffer_marker_2_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_buffer_marker_2_amd", "oiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_write_buffer_marker_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_buffer_marker_amd", "oiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_write_marker_to_memory_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_marker_to_memory_amd", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_write_micromaps_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_write_micromaps_properties_ext", "oiiiiiiioiiiib", false));
+
+	private static var lime_vk_compile_deferred_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_compile_deferred_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_copy_acceleration_structure_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_copy_acceleration_structure_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_copy_micromap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_copy_micromap_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_create_acceleration_structure_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_acceleration_structure_2_khr", "oiiiioo", false));
+
+	private static var lime_vk_create_acceleration_structure_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_acceleration_structure_khr", "oiiiioo", false));
+
+	private static var lime_vk_create_cu_function_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->String->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_cu_function_nvx", "oiiiioso", false));
+
+	private static var lime_vk_create_deferred_operation_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_deferred_operation_khr", "oiiiio", false));
+
+	private static var lime_vk_create_display_mode_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_display_mode_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_create_display_plane_surface_khr = new cpp.Callable<cpp.Object->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_display_plane_surface_khr", "oiioo", false));
+
+	private static var lime_vk_create_external_compute_queue_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_external_compute_queue_nv", "oiiiioo", false));
+
+	private static var lime_vk_create_gpa_session_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_gpa_session_amd", "oiiiioo", false));
+
+	private static var lime_vk_create_headless_surface_ext = new cpp.Callable<cpp.Object->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_headless_surface_ext", "oiioo", false));
+
+	private static var lime_vk_create_micromap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_micromap_ext", "oiiiioo", false));
+
+	private static var lime_vk_create_optical_flow_session_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_optical_flow_session_nv", "oiiiioo", false));
+
+	private static var lime_vk_create_video_session_parameters_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_video_session_parameters_khr", "oiiiioo", false));
+
+	private static var lime_vk_debug_marker_set_object_name_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_debug_marker_set_object_name_ext", "oiiiiosb", false));
+
+	private static var lime_vk_debug_report_message_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->String->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_debug_report_message_ext", "oiiiiiiiiissb", false));
+
+	private static var lime_vk_deferred_operation_join_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_deferred_operation_join_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_acceleration_structure_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_acceleration_structure_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_acceleration_structure_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_acceleration_structure_nv", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_cu_function_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_cu_function_nvx", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_cu_module_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_cu_module_nvx", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_debug_report_callback_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_debug_report_callback_ext", "oiiiib", false));
+
+	private static var lime_vk_destroy_debug_utils_messenger_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_debug_utils_messenger_ext", "oiiiib", false));
+
+	private static var lime_vk_destroy_deferred_operation_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_deferred_operation_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_external_compute_queue_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_external_compute_queue_nv", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_gpa_session_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_gpa_session_amd", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_indirect_commands_layout_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_indirect_commands_layout_ext", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_indirect_commands_layout_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_indirect_commands_layout_nv", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_indirect_execution_set_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_indirect_execution_set_ext", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_micromap_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_micromap_ext", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_optical_flow_session_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_optical_flow_session_nv", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_pipeline_binary_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_pipeline_binary_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_shader_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_shader_ext", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_surface_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_surface_khr", "oiiiib", false));
+
+	private static var lime_vk_destroy_swapchain_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_swapchain_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_validation_cache_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_validation_cache_ext", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_video_session_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_video_session_khr", "oiiiiiib", false));
+
+	private static var lime_vk_destroy_video_session_parameters_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_destroy_video_session_parameters_khr", "oiiiiiib", false));
+
+	private static var lime_vk_display_power_control_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_display_power_control_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_get_acceleration_structure_device_address_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_acceleration_structure_device_address_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_acceleration_structure_memory_requirements_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_acceleration_structure_memory_requirements_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_calibrated_timestamps_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_calibrated_timestamps_khr", "oiiiiioooo", false));
+
+	private static var lime_vk_get_deferred_operation_max_concurrency_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_deferred_operation_max_concurrency_khr", "oiiiiiio", false));
+
+	private static var lime_vk_get_deferred_operation_result_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_deferred_operation_result_khr", "oiiiiiib", false));
+
+	private static var lime_vk_get_descriptor_set_layout_binding_offset_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_descriptor_set_layout_binding_offset_ext", "oiiiiiiio", false));
+
+	private static var lime_vk_get_descriptor_set_layout_size_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_descriptor_set_layout_size_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_device_combined_image_sampler_index_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_combined_image_sampler_index_nvx", "oiiiiiiiio", false));
+
+	private static var lime_vk_get_device_group_present_capabilities_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_group_present_capabilities_khr", "oiiiio", false));
+
+	private static var lime_vk_get_device_group_surface_present_modes_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_group_surface_present_modes_khr", "oiiiiiio", false));
+
+	private static var lime_vk_get_display_mode_properties_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_display_mode_properties_2_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_display_mode_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_display_mode_properties_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_display_plane_capabilities_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_display_plane_capabilities_2_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_display_plane_capabilities_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_display_plane_capabilities_khr", "oiiiiiiio", false));
+
+	private static var lime_vk_get_display_plane_supported_displays_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_display_plane_supported_displays_khr", "oiiiiioo", false));
+
+	private static var lime_vk_get_drm_display_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_drm_display_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_fence_fd_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_fence_fd_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_generated_commands_memory_requirements_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_generated_commands_memory_requirements_ext", "oiiiioo", false));
+
+	private static var lime_vk_get_generated_commands_memory_requirements_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_generated_commands_memory_requirements_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_gpa_device_clock_info_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_gpa_device_clock_info_amd", "oiiiio", false));
+
+	private static var lime_vk_get_gpa_session_status_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_gpa_session_status_amd", "oiiiiiib", false));
+
+	private static var lime_vk_get_image_drm_format_modifier_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_drm_format_modifier_properties_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_image_view_address_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_view_address_nvx", "oiiiiiio", false));
+
+	private static var lime_vk_get_image_view_handle_64_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_view_handle_64_nvx", "oiiiioo", false));
+
+	private static var lime_vk_get_image_view_handle_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_view_handle_nvx", "oiiiioo", false));
+
+	private static var lime_vk_get_memory_fd_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_memory_fd_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_memory_fd_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_memory_fd_properties_khr", "oiiiiiio", false));
+
+	private static var lime_vk_get_partitioned_acceleration_structures_build_sizes_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_partitioned_acceleration_structures_build_sizes_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_calibrateable_time_domains_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_calibrateable_time_domains_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_cooperative_matrix_properties_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_properties_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_cooperative_matrix_properties_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_cooperative_vector_properties_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_cooperative_vector_properties_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_descriptor_size_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_descriptor_size_ext", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_display_plane_properties_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_display_plane_properties_2_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_display_plane_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_display_plane_properties_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_external_image_format_properties_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_external_image_format_properties_nv", "oiiiiiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_fragment_shading_rates_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_fragment_shading_rates_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_multisample_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_multisample_properties_ext", "oiiiiio", false));
+
+	private static var lime_vk_get_physical_device_optical_flow_image_formats_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_optical_flow_image_formats_nv", "oiiiiooo", false));
+
+	private static var lime_vk_get_physical_device_present_rectangles_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_present_rectangles_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_surface_capabilities_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_capabilities_2_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_surface_capabilities_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_capabilities_2_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_physical_device_surface_capabilities_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_capabilities_khr", "oiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_surface_formats_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_formats_2_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_physical_device_surface_formats_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_formats_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_physical_device_surface_present_modes_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_present_modes_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_physical_device_surface_support_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_surface_support_khr", "oiiiiiiio", false));
+
+	private static var lime_vk_get_physical_device_video_format_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_video_format_properties_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_pipeline_indirect_device_address_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_pipeline_indirect_device_address_nv", "oiiiioo", false));
+
+	private static var lime_vk_get_pipeline_key_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_pipeline_key_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_pipeline_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_pipeline_properties_ext", "oiiiioo", false));
+
+	private static var lime_vk_get_ray_tracing_shader_group_stack_size_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_ray_tracing_shader_group_stack_size_khr", "oiiiiiiiio", false));
+
+	private static var lime_vk_get_semaphore_fd_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_semaphore_fd_khr", "oiiiioo", false));
+
+	private static var lime_vk_get_shader_module_identifier_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_shader_module_identifier_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_sleep_status_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_sleep_status_legacy_nv", "oiiiio", false));
+
+	private static var lime_vk_get_swapchain_counter_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_swapchain_counter_ext", "oiiiiiiio", false));
+
+	private static var lime_vk_get_swapchain_images_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_swapchain_images_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_get_swapchain_status_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_swapchain_status_khr", "oiiiiiib", false));
+
+	private static var lime_vk_get_swapchain_timing_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_swapchain_timing_properties_ext", "oiiiiiio", false));
+
+	private static var lime_vk_get_video_session_memory_requirements_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_video_session_memory_requirements_khr", "oiiiiiioo", false));
+
+	private static var lime_vk_import_fence_fd_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_import_fence_fd_khr", "oiiiiob", false));
+
+	private static var lime_vk_import_semaphore_fd_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_import_semaphore_fd_khr", "oiiiiob", false));
+
+	private static var lime_vk_latency_sleep_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_latency_sleep_legacy_nv", "oiiiiiiiib", false));
+
+	private static var lime_vk_latency_sleep_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_latency_sleep_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_merge_validation_caches_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_merge_validation_caches_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_queue_begin_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_begin_debug_utils_label_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_queue_end_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_end_debug_utils_label_ext", "oiiiiiib", false));
+
+	private static var lime_vk_queue_insert_debug_utils_label_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_insert_debug_utils_label_ext", "oiiiiiiosb", false));
+
+	private static var lime_vk_queue_notify_out_of_band_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_notify_out_of_band_legacy_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_queue_notify_out_of_band_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_queue_notify_out_of_band_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_register_device_event_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_register_device_event_ext", "oiiiioo", false));
+
+	private static var lime_vk_register_display_event_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_register_display_event_ext", "oiiiiiioo", false));
+
+	private static var lime_vk_release_captured_pipeline_data_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_release_captured_pipeline_data_khr", "oiiiiob", false));
+
+	private static var lime_vk_release_display_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_release_display_ext", "oiiiiiib", false));
+
+	private static var lime_vk_release_profiling_lock_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_release_profiling_lock_khr", "oiiiib", false));
+
+	private static var lime_vk_reset_gpa_session_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_reset_gpa_session_amd", "oiiiiiib", false));
+
+	private static var lime_vk_set_debug_utils_object_name_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->String->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_debug_utils_object_name_ext", "oiiiiosb", false));
+
+	private static var lime_vk_set_device_memory_priority_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_device_memory_priority_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_set_gpa_device_clock_mode_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_gpa_device_clock_mode_amd", "oiiiio", false));
+
+	private static var lime_vk_set_hdr_metadata_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_hdr_metadata_ext", "oiiiiioob", false));
+
+	private static var lime_vk_set_latency_marker_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_latency_marker_legacy_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_set_latency_marker_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_latency_marker_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_set_latency_sleep_mode_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_latency_sleep_mode_legacy_nv", "oiiiiiiib", false));
+
+	private static var lime_vk_set_latency_sleep_mode_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_latency_sleep_mode_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_set_local_dimming_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_local_dimming_amd", "oiiiiiiib", false));
+
+	private static var lime_vk_set_swapchain_present_timing_queue_size_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_swapchain_present_timing_queue_size_ext", "oiiiiiiib", false));
+
+	private static var lime_vk_shutdown_latency_device_legacy_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_shutdown_latency_device_legacy_nv", "oiiiib", false));
+
+	private static var lime_vk_unregister_custom_border_color_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_unregister_custom_border_color_ext", "oiiiiib", false));
+
+	private static var lime_vk_update_indirect_execution_set_pipeline_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_update_indirect_execution_set_pipeline_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_update_indirect_execution_set_shader_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_update_indirect_execution_set_shader_ext", "oiiiiiiiob", false));
+
+	private static var lime_vk_update_video_session_parameters_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_update_video_session_parameters_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_wait_for_present_2_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_wait_for_present_2_khr", "oiiiiiiob", false));
+
+	private static var lime_vk_wait_for_present_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_wait_for_present_khr", "oiiiiiiiiiib", false));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_cmd_push_constants_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_constants_2", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_push_descriptor_set_with_template_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_descriptor_set_with_template_2", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_update_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_update_memory_khr", "oiiiiiioiob", false));
+
+	private static var lime_vk_create_validation_cache_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_validation_cache_ext", "oiiiiooo", false));
+
+	private static var lime_vk_debug_marker_set_object_tag_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_debug_marker_set_object_tag_ext", "oiiiioob", false));
+
+	private static var lime_vk_set_debug_utils_object_tag_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_set_debug_utils_object_tag_ext", "oiiiioob", false));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_cmd_bind_descriptor_sets_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_descriptor_sets_2", "oiiiiiiooob", false));
+
+	private static var lime_vk_cmd_push_descriptor_set = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_descriptor_set", "oiiiiiiiiiiioooob", false));
+
+	private static var lime_vk_cmd_push_descriptor_set_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_descriptor_set_2", "oiiiiiiooooob", false));
+
+	private static var lime_vk_cmd_push_descriptor_set_with_template = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_descriptor_set_with_template", "oiiiiiiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_rendering_attachment_locations = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_rendering_attachment_locations", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_set_rendering_input_attachment_indices = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_rendering_input_attachment_indices", "oiiiiiioooob", false));
+
+	private static var lime_vk_copy_image_to_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_copy_image_to_image", "oiiiioob", false));
+
+	private static var lime_vk_copy_image_to_memory = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_copy_image_to_memory", "oiiiiooob", false));
+
+	private static var lime_vk_copy_memory_to_image = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_copy_memory_to_image", "oiiiiooob", false));
+
+	private static var lime_vk_get_device_image_subresource_layout = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_image_subresource_layout", "oiiiiooooo", false));
+
+	private static var lime_vk_get_rendering_area_granularity = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_rendering_area_granularity", "oiiiiooo", false));
+
+	private static var lime_vk_map_memory_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_map_memory_2", "oiiiioo", false));
+
+	private static var lime_vk_anti_lag_update_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_anti_lag_update_amd", "oiiiioob", false));
+
+	private static var lime_vk_bind_acceleration_structure_memory_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_bind_acceleration_structure_memory_nv", "oiiiiioob", false));
+
+	private static var lime_vk_cmd_begin_gpa_sample_amd = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_gpa_sample_amd", "oiiiiiiiiooo", false));
+
+	private static var lime_vk_cmd_begin_video_coding_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_begin_video_coding_khr", "oiiiiiiooob", false));
+
+	private static var lime_vk_cmd_copy_image_to_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_image_to_memory_khr", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_copy_memory_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_khr", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_copy_memory_to_image_indirect_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_to_image_indirect_khr", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_copy_memory_to_image_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_copy_memory_to_image_khr", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_decode_video_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_decode_video_khr", "oiiiiiiooooob", false));
+
+	private static var lime_vk_cmd_decompress_memory_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_decompress_memory_ext", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_encode_video_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_encode_video_khr", "oiiiiiiooooob", false));
+
+	private static var lime_vk_cmd_execute_generated_commands_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_execute_generated_commands_nv", "oiiiiiiioob", false));
+
+	private static var lime_vk_cmd_optical_flow_execute_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_optical_flow_execute_nv", "oiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_preprocess_generated_commands_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_preprocess_generated_commands_nv", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_push_data_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_push_data_ext", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_checkpoint_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_checkpoint_nv", "oiiiiiiob", false));
+
+	private static var lime_vk_cmd_set_coarse_sample_order_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_coarse_sample_order_nv", "oiiiiiiiioob", false));
+
+	private static var lime_vk_cmd_set_descriptor_buffer_offsets_2_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_descriptor_buffer_offsets_2_ext", "oiiiiiiooob", false));
+
+	private static var lime_vk_cmd_set_sample_locations_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_sample_locations_ext", "oiiiiiioob", false));
+
+	private static var lime_vk_cmd_set_viewport_shading_rate_palette_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_viewport_shading_rate_palette_nv", "oiiiiiiiioob", false));
+
+	private static var lime_vk_create_cu_module_nvx = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_cu_module_nvx", "oiiiiooo", false));
+
+	private static var lime_vk_create_indirect_commands_layout_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_indirect_commands_layout_nv", "oiiiioooooo", false));
+
+	private static var lime_vk_create_shared_swapchains_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_shared_swapchains_khr", "oiiiiioooo", false));
+
+	private static var lime_vk_create_swapchain_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_swapchain_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_device_acceleration_structure_compatibility_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_acceleration_structure_compatibility_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_device_micromap_compatibility_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_device_micromap_compatibility_ext", "oiiiiooo", false));
+
+	private static var lime_vk_get_memory_host_pointer_properties_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_memory_host_pointer_properties_ext", "oiiiiioo", false));
+
+	private static var lime_vk_get_physical_device_queue_family_performance_query_passes_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_queue_family_performance_query_passes_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_physical_device_video_encode_quality_level_properties_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_physical_device_video_encode_quality_level_properties_khr", "oiiiiooo", false));
+
+	private static var lime_vk_get_shader_module_create_info_identifier_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_shader_module_create_info_identifier_ext", "oiiiiooo", false));
+
+	private static var lime_vk_release_swapchain_images_khr = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_release_swapchain_images_khr", "oiiiioob", false));
+
+	private static var lime_vk_cmd_bind_index_buffer_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_bind_index_buffer_2", "oiiiiiiiiiiiiib", false));
+
+	private static var lime_vk_cmd_set_line_stipple = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_set_line_stipple", "oiiiiiiiib", false));
+
+	private static var lime_vk_get_image_subresource_layout_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_image_subresource_layout_2", "oiiiiiioo", false));
+
+	private static var lime_vk_transition_image_layout = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_transition_image_layout", "oiiiiiob", false));
+
+	private static var lime_vk_unmap_memory_2 = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_unmap_memory_2", "oiiiiob", false));
+
 	#end
 	private static var lime_vk_get_last_error = new cpp.Callable<Void->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_vk_get_last_error", "o", false));
 	private static var lime_vulkan_renderer_create = new cpp.Callable<cpp.Object->String->cpp.Object>(cpp.Prime._loadPrime("lime",
@@ -1182,6 +7376,12 @@ class NativeCFFI
 	private static var lime_vulkan_renderer_render = new cpp.Callable<cpp.Object->Float->Float->Float->Float->Bool>(cpp.Prime._loadPrime("lime",
 		"lime_vulkan_renderer_render", "oddddb", false));
 	private static var lime_vulkan_renderer_resize = new cpp.Callable<cpp.Object->Bool>(cpp.Prime._loadPrime("lime", "lime_vulkan_renderer_resize", "ob",
+		false));
+	// alloc_array() builds Array_obj<Dynamic>; the return must stay cpp.Object /
+	// Dynamic -- a typed Array<Int> declaration reinterprets the element storage
+	// (raw int vs Object*) and corrupts every word (same pattern as
+	// lime_file_dialog_open_files: sig "so" -> cpp.Object)
+	private static var lime_glslang_compile = new cpp.Callable<String->cpp.Object>(cpp.Prime._loadPrime("lime", "lime_glslang_compile", "so",
 		false));
 	private static var lime_window_get_width = new cpp.Callable<cpp.Object->Int>(cpp.Prime._loadPrime("lime", "lime_window_get_width", "oi", false));
 	private static var lime_window_get_x = new cpp.Callable<cpp.Object->Int>(cpp.Prime._loadPrime("lime", "lime_window_get_x", "oi", false));
@@ -1212,8 +7412,18 @@ class NativeCFFI
 		"obv", false));
 	private static var lime_window_set_opacity = new cpp.Callable<cpp.Object->Float->cpp.Void>(cpp.Prime._loadPrime("lime", "lime_window_set_opacity", "odv",
 		false));
+	private static var lime_window_set_progress_state = new cpp.Callable<cpp.Object->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_window_set_progress_state", "oiv", false));
+	private static var lime_window_set_progress_value = new cpp.Callable<cpp.Object->Float->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_window_set_progress_value", "odv", false));
 	private static var lime_window_set_resizable = new cpp.Callable<cpp.Object->Bool->Bool>(cpp.Prime._loadPrime("lime", "lime_window_set_resizable", "obb",
 		false));
+	private static var lime_window_set_mouse_rect = new cpp.Callable<cpp.Object->cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_window_set_mouse_rect", "oov", false));
+	private static var lime_window_set_cursor_image = new cpp.Callable<cpp.Object->cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_window_set_cursor_image", "oov", false));
+	private static var lime_window_set_blur = new cpp.Callable<cpp.Object->Int->Int->cpp.Void>(cpp.Prime._loadPrime("lime",
+		"lime_window_set_blur", "oiiv", false));
 	private static var lime_window_set_text_input_enabled = new cpp.Callable<cpp.Object->Bool->cpp.Void>(cpp.Prime._loadPrime("lime",
 		"lime_window_set_text_input_enabled", "obv", false));
 	private static var lime_window_set_text_input_rect = new cpp.Callable<cpp.Object->cpp.Object->cpp.Void>(cpp.Prime._loadPrime("lime",
@@ -1247,6 +7457,7 @@ class NativeCFFI
 	private static var lime_audio_load = CFFI.load("lime", "lime_audio_load", 2);
 	private static var lime_audio_load_bytes = CFFI.load("lime", "lime_audio_load_bytes", 2);
 	private static var lime_audio_load_file = CFFI.load("lime", "lime_audio_load_file", 2);
+	#if (lime_sdl_sound && !macro)
 	private static var lime_sdl_sound_get_info_from_bytes = CFFI.load("lime", "lime_sdl_sound_get_info_from_bytes", 1);
 	private static var lime_sdl_sound_get_info_from_file = CFFI.load("lime", "lime_sdl_sound_get_info_from_file", 1);
 	private static var lime_sdl_sound_stream_from_bytes = CFFI.load("lime", "lime_sdl_sound_stream_from_bytes", 1);
@@ -1255,6 +7466,7 @@ class NativeCFFI
 	private static var lime_sdl_sound_stream_rewind = CFFI.load("lime", "lime_sdl_sound_stream_rewind", 1);
 	private static var lime_sdl_sound_stream_seek = CFFI.load("lime", "lime_sdl_sound_stream_seek", 2);
 	private static var lime_sdl_sound_stream_clear = CFFI.load("lime", "lime_sdl_sound_stream_clear", 1);
+	#end
 	private static var lime_bytes_from_data_pointer = CFFI.load("lime", "lime_bytes_from_data_pointer", 3);
 	private static var lime_bytes_get_data_pointer = CFFI.load("lime", "lime_bytes_get_data_pointer", 1);
 	private static var lime_bytes_get_data_pointer_offset = CFFI.load("lime", "lime_bytes_get_data_pointer_offset", 2);
@@ -1299,12 +7511,12 @@ class NativeCFFI
 	private static var lime_font_render_glyph_with_flags = CFFI.load("lime", "lime_font_render_glyph_with_flags", 4);
 	private static var lime_font_render_glyphs = CFFI.load("lime", "lime_font_render_glyphs", 3);
 	private static var lime_font_set_size = CFFI.load("lime", "lime_font_set_size", 3);
-	private static var lime_font_set_stem_darkening = CFFI.load("lime", "lime_font_set_stem_darkening", 2);
-	private static var lime_font_set_stem_darkening_parameters = CFFI.load("lime", "lime_font_set_stem_darkening_parameters", 2);
 	private static var lime_gamepad_add_mappings = CFFI.load("lime", "lime_gamepad_add_mappings", 1);
 	private static var lime_gamepad_get_device_guid = CFFI.load("lime", "lime_gamepad_get_device_guid", 1);
 	private static var lime_gamepad_get_device_name = CFFI.load("lime", "lime_gamepad_get_device_name", 1);
 	private static var lime_gamepad_rumble = CFFI.load("lime", "lime_gamepad_rumble", 4);
+	private static var lime_gamepad_rumble_triggers = CFFI.load("lime", "lime_gamepad_rumble_triggers", 4);
+	private static var lime_gamepad_set_led = CFFI.load("lime", "lime_gamepad_set_led", 4);
 	private static var lime_gamepad_event_manager_register = CFFI.load("lime", "lime_gamepad_event_manager_register", 2);
 	private static var lime_gzip_compress = CFFI.load("lime", "lime_gzip_compress", 2);
 	private static var lime_gzip_decompress = CFFI.load("lime", "lime_gzip_decompress", 2);
@@ -1358,6 +7570,8 @@ class NativeCFFI
 	private static var lime_system_get_platform_label = CFFI.load("lime", "lime_system_get_platform_label", 0);
 	private static var lime_system_get_platform_name = CFFI.load("lime", "lime_system_get_platform_name", 0);
 	private static var lime_system_get_platform_version = CFFI.load("lime", "lime_system_get_platform_version", 0);
+	private static var lime_system_get_theme = CFFI.load("lime", "lime_system_get_theme", 0);
+	private static var lime_system_is_tablet = CFFI.load("lime", "lime_system_is_tablet", 0);
 	private static var lime_system_get_timer = CFFI.load("lime", "lime_system_get_timer", 0);
 	private static var lime_system_open_file = CFFI.load("lime", "lime_system_open_file", 1);
 	private static var lime_system_open_url = CFFI.load("lime", "lime_system_open_url", 2);
@@ -1380,6 +7594,9 @@ class NativeCFFI
 	private static var lime_window_get_id = CFFI.load("lime", "lime_window_get_id", 1);
 	private static var lime_window_get_mouse_lock = CFFI.load("lime", "lime_window_get_mouse_lock", 1);
 	private static var lime_window_get_opacity = CFFI.load("lime", "lime_window_get_opacity", 1);
+	private static var lime_window_get_progress_state = CFFI.load("lime", "lime_window_get_progress_state", 1);
+	private static var lime_window_get_progress_value = CFFI.load("lime", "lime_window_get_progress_value", 1);
+	private static var lime_window_get_safe_area = CFFI.load("lime", "lime_window_get_safe_area", 1);
 	private static var lime_window_get_scale = CFFI.load("lime", "lime_window_get_scale", 1);
 	private static var lime_window_get_text_input_enabled = CFFI.load("lime", "lime_window_get_text_input_enabled", 1);
 	private static var lime_window_get_vulkan_drawable_size = CFFI.load("lime", "lime_window_get_vulkan_drawable_size", 1);
@@ -1403,12 +7620,17 @@ class NativeCFFI
 	private static var lime_vk_end_command_buffer = CFFI.load("lime", "lime_vk_end_command_buffer", -1);
 	private static var lime_vk_reset_command_buffer = CFFI.load("lime", "lime_vk_reset_command_buffer", -1);
 	private static var lime_vk_create_semaphore = CFFI.load("lime", "lime_vk_create_semaphore", 5);
+	private static var lime_vk_create_timeline_semaphore = CFFI.load("lime", "lime_vk_create_timeline_semaphore", 7);
+	private static var lime_vk_get_semaphore_counter_value = CFFI.load("lime", "lime_vk_get_semaphore_counter_value", 7);
+	private static var lime_vk_signal_semaphore = CFFI.load("lime", "lime_vk_signal_semaphore", 9);
+	private static var lime_vk_wait_semaphores = CFFI.load("lime", "lime_vk_wait_semaphores", 8);
 	private static var lime_vk_destroy_semaphore = CFFI.load("lime", "lime_vk_destroy_semaphore", -1);
 	private static var lime_vk_create_fence = CFFI.load("lime", "lime_vk_create_fence", -1);
 	private static var lime_vk_destroy_fence = CFFI.load("lime", "lime_vk_destroy_fence", -1);
 	private static var lime_vk_wait_for_fence = CFFI.load("lime", "lime_vk_wait_for_fence", -1);
 	private static var lime_vk_reset_fence = CFFI.load("lime", "lime_vk_reset_fence", -1);
 	private static var lime_vk_queue_submit = CFFI.load("lime", "lime_vk_queue_submit", -1);
+	private static var lime_vk_queue_bind_sparse = CFFI.load("lime", "lime_vk_queue_bind_sparse", -1);
 	private static var lime_vk_allocate_memory = CFFI.load("lime", "lime_vk_allocate_memory", -1);
 	private static var lime_vk_free_memory = CFFI.load("lime", "lime_vk_free_memory", -1);
 	private static var lime_vk_upload_memory = CFFI.load("lime", "lime_vk_upload_memory", -1);
@@ -1423,8 +7645,10 @@ class NativeCFFI
 	private static var lime_vk_get_buffer_memory_requirements = CFFI.load("lime", "lime_vk_get_buffer_memory_requirements", -1);
 	private static var lime_vk_bind_buffer_memory = CFFI.load("lime", "lime_vk_bind_buffer_memory", -1);
 	private static var lime_vk_create_image = CFFI.load("lime", "lime_vk_create_image", -1);
+	private static var lime_vk_create_image_ex = CFFI.load("lime", "lime_vk_create_image_ex", -1);
 	private static var lime_vk_destroy_image = CFFI.load("lime", "lime_vk_destroy_image", -1);
 	private static var lime_vk_get_image_memory_requirements = CFFI.load("lime", "lime_vk_get_image_memory_requirements", -1);
+	private static var lime_vk_get_image_subresource_layout = CFFI.load("lime", "lime_vk_get_image_subresource_layout", -1);
 	private static var lime_vk_bind_image_memory = CFFI.load("lime", "lime_vk_bind_image_memory", -1);
 	private static var lime_vk_create_swapchain = CFFI.load("lime", "lime_vk_create_swapchain", -1);
 	private static var lime_vk_destroy_swapchain = CFFI.load("lime", "lime_vk_destroy_swapchain", -1);
@@ -1448,6 +7672,7 @@ class NativeCFFI
 	private static var lime_vk_destroy_descriptor_pool = CFFI.load("lime", "lime_vk_destroy_descriptor_pool", -1);
 	private static var lime_vk_reset_descriptor_pool = CFFI.load("lime", "lime_vk_reset_descriptor_pool", -1);
 	private static var lime_vk_allocate_descriptor_set = CFFI.load("lime", "lime_vk_allocate_descriptor_set", -1);
+	private static var lime_vk_free_descriptor_set = CFFI.load("lime", "lime_vk_free_descriptor_set", -1);
 	private static var lime_vk_update_descriptor_set_image = CFFI.load("lime", "lime_vk_update_descriptor_set_image", -1);
 	private static var lime_vk_update_descriptor_set_buffer = CFFI.load("lime", "lime_vk_update_descriptor_set_buffer", -1);
 	private static var lime_vk_update_descriptor_sets = CFFI.load("lime", "lime_vk_update_descriptor_sets", -1);
@@ -1461,6 +7686,8 @@ class NativeCFFI
 	private static var lime_vk_queue_submit_synced = CFFI.load("lime", "lime_vk_queue_submit_synced", -1);
 	private static var lime_vk_cmd_begin_render_pass = CFFI.load("lime", "lime_vk_cmd_begin_render_pass", -1);
 	private static var lime_vk_cmd_end_render_pass = CFFI.load("lime", "lime_vk_cmd_end_render_pass", -1);
+	private static var lime_vk_cmd_begin_rendering = CFFI.load("lime", "lime_vk_cmd_begin_rendering", -1);
+	private static var lime_vk_cmd_end_rendering = CFFI.load("lime", "lime_vk_cmd_end_rendering", -1);
 	private static var lime_vk_cmd_bind_pipeline = CFFI.load("lime", "lime_vk_cmd_bind_pipeline", -1);
 	private static var lime_vk_cmd_bind_descriptor_set = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_set", -1);
 	private static var lime_vk_cmd_bind_descriptor_set_ex = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_set_ex", -1);
@@ -1477,11 +7704,2822 @@ class NativeCFFI
 	private static var lime_vk_cmd_copy_buffer_to_image_region = CFFI.load("lime", "lime_vk_cmd_copy_buffer_to_image_region", -1);
 	private static var lime_vk_cmd_copy_image_to_buffer_region = CFFI.load("lime", "lime_vk_cmd_copy_image_to_buffer_region", -1);
 	private static var lime_vk_cmd_pipeline_barrier_image = CFFI.load("lime", "lime_vk_cmd_pipeline_barrier_image", -1);
+	private static var lime_vk_cmd_pipeline_barrier2 = CFFI.load("lime", "lime_vk_cmd_pipeline_barrier2", -1);
+	private static var lime_vk_cmd_pipeline_barrier_image2 = CFFI.load("lime", "lime_vk_cmd_pipeline_barrier_image2", -1);
 	private static var lime_vk_cmd_clear_color_image = CFFI.load("lime", "lime_vk_cmd_clear_color_image", -1);
 	private static var lime_vk_cmd_clear_depth_stencil_image = CFFI.load("lime", "lime_vk_cmd_clear_depth_stencil_image", -1);
 	private static var lime_vk_cmd_clear_attachments = CFFI.load("lime", "lime_vk_cmd_clear_attachments", -1);
 	private static var lime_vk_cmd_blit_image = CFFI.load("lime", "lime_vk_cmd_blit_image", -1);
 	private static var lime_vk_cmd_push_constants = CFFI.load("lime", "lime_vk_cmd_push_constants", -1);
+	private static var lime_vk_create_event = CFFI.load("lime", "lime_vk_create_event", -1);
+	private static var lime_vk_destroy_event = CFFI.load("lime", "lime_vk_destroy_event", -1);
+	private static var lime_vk_get_event_status = CFFI.load("lime", "lime_vk_get_event_status", -1);
+	private static var lime_vk_get_fence_status = CFFI.load("lime", "lime_vk_get_fence_status", -1);
+	private static var lime_vk_cmd_set_event = CFFI.load("lime", "lime_vk_cmd_set_event", -1);
+	private static var lime_vk_cmd_reset_event = CFFI.load("lime", "lime_vk_cmd_reset_event", -1);
+	private static var lime_vk_cmd_wait_events = CFFI.load("lime", "lime_vk_cmd_wait_events", -1);
+	private static var lime_vk_cmd_dispatch = CFFI.load("lime", "lime_vk_cmd_dispatch", -1);
+	private static var lime_vk_cmd_dispatch_indirect = CFFI.load("lime", "lime_vk_cmd_dispatch_indirect", -1);
+	private static var lime_vk_cmd_next_subpass = CFFI.load("lime", "lime_vk_cmd_next_subpass", -1);
+	private static var lime_vk_cmd_execute_commands = CFFI.load("lime", "lime_vk_cmd_execute_commands", -1);
+	private static var lime_vk_cmd_set_line_width = CFFI.load("lime", "lime_vk_cmd_set_line_width", -1);
+	private static var lime_vk_cmd_set_depth_bias = CFFI.load("lime", "lime_vk_cmd_set_depth_bias", -1);
+	private static var lime_vk_cmd_set_blend_constants = CFFI.load("lime", "lime_vk_cmd_set_blend_constants", -1);
+	private static var lime_vk_cmd_set_depth_bounds = CFFI.load("lime", "lime_vk_cmd_set_depth_bounds", -1);
+	private static var lime_vk_cmd_set_stencil_compare_mask = CFFI.load("lime", "lime_vk_cmd_set_stencil_compare_mask", -1);
+	private static var lime_vk_cmd_set_stencil_write_mask = CFFI.load("lime", "lime_vk_cmd_set_stencil_write_mask", -1);
+	private static var lime_vk_cmd_set_stencil_reference = CFFI.load("lime", "lime_vk_cmd_set_stencil_reference", -1);
+	private static var lime_vk_create_compute_pipeline = CFFI.load("lime", "lime_vk_create_compute_pipeline", -1);
+	private static var lime_vk_cmd_copy_image = CFFI.load("lime", "lime_vk_cmd_copy_image", -1);
+	private static var lime_vk_cmd_resolve_image = CFFI.load("lime", "lime_vk_cmd_resolve_image", -1);
+	private static var lime_vk_cmd_update_buffer = CFFI.load("lime", "lime_vk_cmd_update_buffer", -1);
+	private static var lime_vk_cmd_fill_buffer = CFFI.load("lime", "lime_vk_cmd_fill_buffer", -1);
+	private static var lime_vk_cmd_begin_query = CFFI.load("lime", "lime_vk_cmd_begin_query", -1);
+	private static var lime_vk_cmd_end_query = CFFI.load("lime", "lime_vk_cmd_end_query", -1);
+	private static var lime_vk_cmd_reset_query_pool = CFFI.load("lime", "lime_vk_cmd_reset_query_pool", -1);
+	private static var lime_vk_cmd_write_timestamp = CFFI.load("lime", "lime_vk_cmd_write_timestamp", -1);
+	private static var lime_vk_cmd_copy_query_pool_results = CFFI.load("lime", "lime_vk_cmd_copy_query_pool_results", -1);
+	private static var lime_vk_create_query_pool = CFFI.load("lime", "lime_vk_create_query_pool", -1);
+	private static var lime_vk_destroy_query_pool = CFFI.load("lime", "lime_vk_destroy_query_pool", -1);
+	private static var lime_vk_reset_query_pool = CFFI.load("lime", "lime_vk_reset_query_pool", -1);
+	private static var lime_vk_get_query_pool_results = CFFI.load("lime", "lime_vk_get_query_pool_results", -1);
+	private static var lime_vk_wait_for_fences = CFFI.load("lime", "lime_vk_wait_for_fences", -1);
+	private static var lime_vk_get_physical_device_features = CFFI.load("lime", "lime_vk_get_physical_device_features", 5);
+
+	private static var lime_vk_get_physical_device_format_properties = CFFI.load("lime", "lime_vk_get_physical_device_format_properties", 6);
+
+	private static var lime_vk_get_physical_device_image_format_properties = CFFI.load("lime", "lime_vk_get_physical_device_image_format_properties", 10);
+
+	private static var lime_vk_get_physical_device_memory_properties = CFFI.load("lime", "lime_vk_get_physical_device_memory_properties", 5);
+
+	private static var lime_vk_get_physical_device_sparse_image_format_properties = CFFI.load("lime", "lime_vk_get_physical_device_sparse_image_format_properties", 10);
+
+	private static var lime_vk_create_buffer_view = CFFI.load("lime", "lime_vk_create_buffer_view", 10);
+
+	private static var lime_vk_destroy_buffer_view = CFFI.load("lime", "lime_vk_destroy_buffer_view", 7);
+
+	private static var lime_vk_get_device_queue = CFFI.load("lime", "lime_vk_get_device_queue", 7);
+
+	private static var lime_vk_get_device_memory_commitment = CFFI.load("lime", "lime_vk_get_device_memory_commitment", 7);
+
+	private static var lime_vk_get_image_sparse_memory_requirements = CFFI.load("lime", "lime_vk_get_image_sparse_memory_requirements", 7);
+
+	private static var lime_vk_merge_pipeline_caches = CFFI.load("lime", "lime_vk_merge_pipeline_caches", 8);
+
+	private static var lime_vk_get_render_area_granularity = CFFI.load("lime", "lime_vk_get_render_area_granularity", 7);
+
+	private static var lime_vk_set_event = CFFI.load("lime", "lime_vk_set_event", 7);
+
+	private static var lime_vk_reset_event = CFFI.load("lime", "lime_vk_reset_event", 7);
+
+	private static var lime_vk_enumerate_instance_extension_properties = CFFI.load("lime", "lime_vk_enumerate_instance_extension_properties", 2);
+
+	private static var lime_vk_enumerate_instance_layer_properties = CFFI.load("lime", "lime_vk_enumerate_instance_layer_properties", 1);
+
+	private static var lime_vk_enumerate_device_extension_properties = CFFI.load("lime", "lime_vk_enumerate_device_extension_properties", 6);
+
+	private static var lime_vk_enumerate_device_layer_properties = CFFI.load("lime", "lime_vk_enumerate_device_layer_properties", 5);
+
+	private static var lime_vk_enumerate_instance_version = CFFI.load("lime", "lime_vk_enumerate_instance_version", 1);
+
+	private static var lime_vk_get_physical_device_features2 = CFFI.load("lime", "lime_vk_get_physical_device_features2", 6);
+
+	private static var lime_vk_get_descriptor_indexing_properties = CFFI.load("lime", "lime_vk_get_descriptor_indexing_properties", 5);
+
+	private static var lime_vk_get_vulkan12_properties = CFFI.load("lime", "lime_vk_get_vulkan12_properties", 5);
+	private static var lime_vk_get_inline_uniform_block_properties = CFFI.load("lime", "lime_vk_get_inline_uniform_block_properties", 5);
+	private static var lime_vk_get_subgroup_size_control_properties = CFFI.load("lime", "lime_vk_get_subgroup_size_control_properties", 5);
+
+	private static var lime_vk_get_buffer_memory_requirements2 = CFFI.load("lime", "lime_vk_get_buffer_memory_requirements2", 7);
+
+	private static var lime_vk_get_image_memory_requirements2 = CFFI.load("lime", "lime_vk_get_image_memory_requirements2", 7);
+
+	private static var lime_vk_bind_buffer_memory2 = CFFI.load("lime", "lime_vk_bind_buffer_memory2", 11);
+
+	private static var lime_vk_bind_image_memory2 = CFFI.load("lime", "lime_vk_bind_image_memory2", 11);
+
+	private static var lime_vk_get_device_queue2 = CFFI.load("lime", "lime_vk_get_device_queue2", 8);
+
+	private static var lime_vk_get_descriptor_set_layout_support = CFFI.load("lime", "lime_vk_get_descriptor_set_layout_support", 6);
+
+	private static var lime_vk_get_buffer_device_address = CFFI.load("lime", "lime_vk_get_buffer_device_address", 7);
+
+	private static var lime_vk_get_buffer_opaque_capture_address = CFFI.load("lime", "lime_vk_get_buffer_opaque_capture_address", 7);
+
+	private static var lime_vk_get_device_memory_opaque_capture_address = CFFI.load("lime", "lime_vk_get_device_memory_opaque_capture_address", 7);
+
+	private static var lime_vk_cmd_draw_indirect_count = CFFI.load("lime", "lime_vk_cmd_draw_indirect_count", 8);
+
+	private static var lime_vk_cmd_draw_indexed_indirect_count = CFFI.load("lime", "lime_vk_cmd_draw_indexed_indirect_count", 8);
+
+	private static var lime_vk_trim_command_pool = CFFI.load("lime", "lime_vk_trim_command_pool", 8);
+
+	private static var lime_vk_create_render_pass2 = CFFI.load("lime", "lime_vk_create_render_pass2", 6);
+
+	private static var lime_vk_cmd_begin_render_pass2 = CFFI.load("lime", "lime_vk_cmd_begin_render_pass2", 13);
+
+	private static var lime_vk_cmd_next_subpass2 = CFFI.load("lime", "lime_vk_cmd_next_subpass2", 8);
+
+	private static var lime_vk_cmd_end_render_pass2 = CFFI.load("lime", "lime_vk_cmd_end_render_pass2", 7);
+
+	private static var lime_vk_create_descriptor_update_template = CFFI.load("lime", "lime_vk_create_descriptor_update_template", 6);
+
+	private static var lime_vk_destroy_descriptor_update_template = CFFI.load("lime", "lime_vk_destroy_descriptor_update_template", 7);
+
+	private static var lime_vk_update_descriptor_set_with_template = CFFI.load("lime", "lime_vk_update_descriptor_set_with_template", 12);
+
+	private static var lime_vk_get_physical_device_external_buffer_properties = CFFI.load("lime", "lime_vk_get_physical_device_external_buffer_properties", 8);
+
+	private static var lime_vk_get_physical_device_external_fence_properties = CFFI.load("lime", "lime_vk_get_physical_device_external_fence_properties", 6);
+
+	private static var lime_vk_get_physical_device_external_semaphore_properties = CFFI.load("lime", "lime_vk_get_physical_device_external_semaphore_properties", 6);
+
+	private static var lime_vk_get_physical_device_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_properties2", 5);
+
+	private static var lime_vk_get_physical_device_format_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_format_properties2", 6);
+
+	private static var lime_vk_get_physical_device_image_format_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_image_format_properties2", 10);
+
+	private static var lime_vk_get_physical_device_memory_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_memory_properties2", 5);
+
+	private static var lime_vk_get_physical_device_queue_family_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_queue_family_properties2", 7);
+
+	private static var lime_vk_get_physical_device_sparse_image_format_properties2 = CFFI.load("lime", "lime_vk_get_physical_device_sparse_image_format_properties2", 10);
+
+	private static var lime_vk_create_sampler_ycbcr_conversion = CFFI.load("lime", "lime_vk_create_sampler_ycbcr_conversion", 16);
+
+	private static var lime_vk_destroy_sampler_ycbcr_conversion = CFFI.load("lime", "lime_vk_destroy_sampler_ycbcr_conversion", 7);
+
+	private static var lime_vk_enumerate_physical_device_groups = CFFI.load("lime", "lime_vk_enumerate_physical_device_groups", 3);
+
+	private static var lime_vk_get_device_group_peer_memory_features = CFFI.load("lime", "lime_vk_get_device_group_peer_memory_features", 8);
+
+	private static var lime_vk_cmd_set_device_mask = CFFI.load("lime", "lime_vk_cmd_set_device_mask", 8);
+
+	private static var lime_vk_cmd_dispatch_base = CFFI.load("lime", "lime_vk_cmd_dispatch_base", 13);
+
+	private static var lime_vk_get_image_sparse_memory_requirements2 = CFFI.load("lime", "lime_vk_get_image_sparse_memory_requirements2", 7);
+
+	private static var lime_vk_get_physical_device_surface_capabilities = CFFI.load("lime", "lime_vk_get_physical_device_surface_capabilities", 7);
+
+	private static var lime_vk_get_physical_device_surface_formats = CFFI.load("lime", "lime_vk_get_physical_device_surface_formats", 7);
+
+	private static var lime_vk_get_physical_device_surface_present_modes = CFFI.load("lime", "lime_vk_get_physical_device_surface_present_modes", 7);
+
+	private static var lime_vk_create_device_with_features = CFFI.load("lime", "lime_vk_create_device_with_features", 8);
+
+	private static var lime_vk_allocate_memory_ex = CFFI.load("lime", "lime_vk_allocate_memory_ex", 12);
+
+	private static var lime_vk_cmd_set_cull_mode = CFFI.load("lime", "lime_vk_cmd_set_cull_mode", 8);
+
+	private static var lime_vk_cmd_set_front_face = CFFI.load("lime", "lime_vk_cmd_set_front_face", 8);
+
+	private static var lime_vk_cmd_set_primitive_topology = CFFI.load("lime", "lime_vk_cmd_set_primitive_topology", 8);
+
+	private static var lime_vk_cmd_set_depth_test_enable = CFFI.load("lime", "lime_vk_cmd_set_depth_test_enable", 8);
+
+	private static var lime_vk_cmd_set_depth_write_enable = CFFI.load("lime", "lime_vk_cmd_set_depth_write_enable", 8);
+
+	private static var lime_vk_cmd_set_depth_compare_op = CFFI.load("lime", "lime_vk_cmd_set_depth_compare_op", 8);
+
+	private static var lime_vk_cmd_set_depth_bounds_test_enable = CFFI.load("lime", "lime_vk_cmd_set_depth_bounds_test_enable", 8);
+
+	private static var lime_vk_cmd_set_stencil_test_enable = CFFI.load("lime", "lime_vk_cmd_set_stencil_test_enable", 8);
+
+	private static var lime_vk_cmd_set_stencil_op = CFFI.load("lime", "lime_vk_cmd_set_stencil_op", 12);
+
+	private static var lime_vk_cmd_set_rasterizer_discard_enable = CFFI.load("lime", "lime_vk_cmd_set_rasterizer_discard_enable", 8);
+
+	private static var lime_vk_cmd_set_depth_bias_enable = CFFI.load("lime", "lime_vk_cmd_set_depth_bias_enable", 8);
+
+	private static var lime_vk_cmd_set_primitive_restart_enable = CFFI.load("lime", "lime_vk_cmd_set_primitive_restart_enable", 8);
+
+	private static var lime_vk_cmd_set_viewport_with_count = CFFI.load("lime", "lime_vk_cmd_set_viewport_with_count", 8);
+
+	private static var lime_vk_cmd_set_scissor_with_count = CFFI.load("lime", "lime_vk_cmd_set_scissor_with_count", 8);
+
+	private static var lime_vk_get_physical_device_tool_properties = CFFI.load("lime", "lime_vk_get_physical_device_tool_properties", 5);
+
+	private static var lime_vk_cmd_bind_vertex_buffers_2 = CFFI.load("lime", "lime_vk_cmd_bind_vertex_buffers_2", 9);
+
+	private static var lime_vk_create_private_data_slot = CFFI.load("lime", "lime_vk_create_private_data_slot", 6);
+
+	private static var lime_vk_destroy_private_data_slot = CFFI.load("lime", "lime_vk_destroy_private_data_slot", 7);
+
+	private static var lime_vk_set_private_data = CFFI.load("lime", "lime_vk_set_private_data", 12);
+
+	private static var lime_vk_get_private_data = CFFI.load("lime", "lime_vk_get_private_data", 10);
+
+	private static var lime_vk_cmd_copy_buffer_2 = CFFI.load("lime", "lime_vk_cmd_copy_buffer_2", 12);
+
+	private static var lime_vk_cmd_copy_image_2 = CFFI.load("lime", "lime_vk_cmd_copy_image_2", 14);
+
+	private static var lime_vk_cmd_copy_buffer_to_image_2 = CFFI.load("lime", "lime_vk_cmd_copy_buffer_to_image_2", 13);
+
+	private static var lime_vk_cmd_copy_image_to_buffer_2 = CFFI.load("lime", "lime_vk_cmd_copy_image_to_buffer_2", 13);
+
+	private static var lime_vk_cmd_blit_image_2 = CFFI.load("lime", "lime_vk_cmd_blit_image_2", 15);
+
+	private static var lime_vk_cmd_resolve_image_2 = CFFI.load("lime", "lime_vk_cmd_resolve_image_2", 14);
+
+	private static var lime_vk_cmd_write_timestamp_2 = CFFI.load("lime", "lime_vk_cmd_write_timestamp_2", 12);
+
+	private static var lime_vk_queue_submit_2 = CFFI.load("lime", "lime_vk_queue_submit_2", 13);
+
+	private static var lime_vk_cmd_set_event_2 = CFFI.load("lime", "lime_vk_cmd_set_event_2", 10);
+
+	private static var lime_vk_cmd_reset_event_2 = CFFI.load("lime", "lime_vk_cmd_reset_event_2", 11);
+
+	private static var lime_vk_cmd_wait_events_2 = CFFI.load("lime", "lime_vk_cmd_wait_events_2", 9);
+
+	private static var lime_vk_get_device_buffer_memory_requirements = CFFI.load("lime", "lime_vk_get_device_buffer_memory_requirements", 6);
+
+	private static var lime_vk_get_device_image_memory_requirements = CFFI.load("lime", "lime_vk_get_device_image_memory_requirements", 6);
+
+	private static var lime_vk_get_device_image_sparse_memory_requirements = CFFI.load("lime", "lime_vk_get_device_image_sparse_memory_requirements", 6);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_acquire_drm_display_ext = CFFI.load("lime", "lime_vk_acquire_drm_display_ext", 8);
+
+	private static var lime_vk_acquire_next_image_2_khr = CFFI.load("lime", "lime_vk_acquire_next_image_2_khr", 6);
+
+	private static var lime_vk_acquire_next_image_khr = CFFI.load("lime", "lime_vk_acquire_next_image_khr", 13);
+
+	private static var lime_vk_acquire_profiling_lock_khr = CFFI.load("lime", "lime_vk_acquire_profiling_lock_khr", 6);
+
+	private static var lime_vk_bind_optical_flow_session_image_nv = CFFI.load("lime", "lime_vk_bind_optical_flow_session_image_nv", 11);
+
+	private static var lime_vk_bind_video_session_memory_khr = CFFI.load("lime", "lime_vk_bind_video_session_memory_khr", 9);
+
+	private static var lime_vk_cmd_begin_conditional_rendering_2_ext = CFFI.load("lime", "lime_vk_cmd_begin_conditional_rendering_2_ext", 8);
+
+	private static var lime_vk_cmd_begin_conditional_rendering_ext = CFFI.load("lime", "lime_vk_cmd_begin_conditional_rendering_ext", 8);
+
+	private static var lime_vk_cmd_begin_custom_resolve_ext = CFFI.load("lime", "lime_vk_cmd_begin_custom_resolve_ext", 8);
+
+	private static var lime_vk_cmd_begin_debug_utils_label_ext = CFFI.load("lime", "lime_vk_cmd_begin_debug_utils_label_ext", 9);
+
+	private static var lime_vk_cmd_begin_gpa_session_amd = CFFI.load("lime", "lime_vk_cmd_begin_gpa_session_amd", 9);
+
+	private static var lime_vk_cmd_begin_query_indexed_ext = CFFI.load("lime", "lime_vk_cmd_begin_query_indexed_ext", 12);
+
+	private static var lime_vk_cmd_begin_transform_feedback_2_ext = CFFI.load("lime", "lime_vk_cmd_begin_transform_feedback_2_ext", 10);
+
+	private static var lime_vk_cmd_begin_transform_feedback_ext = CFFI.load("lime", "lime_vk_cmd_begin_transform_feedback_ext", 11);
+
+	private static var lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext", 8);
+
+	private static var lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext", 11);
+
+	private static var lime_vk_cmd_bind_descriptor_buffers_ext = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_buffers_ext", 9);
+
+	private static var lime_vk_cmd_bind_index_buffer_3_khr = CFFI.load("lime", "lime_vk_cmd_bind_index_buffer_3_khr", 8);
+
+	private static var lime_vk_cmd_bind_pipeline_shader_group_nv = CFFI.load("lime", "lime_vk_cmd_bind_pipeline_shader_group_nv", 11);
+
+	private static var lime_vk_cmd_bind_resource_heap_ext = CFFI.load("lime", "lime_vk_cmd_bind_resource_heap_ext", 8);
+
+	private static var lime_vk_cmd_bind_sampler_heap_ext = CFFI.load("lime", "lime_vk_cmd_bind_sampler_heap_ext", 8);
+
+	private static var lime_vk_cmd_bind_shaders_ext = CFFI.load("lime", "lime_vk_cmd_bind_shaders_ext", 10);
+
+	private static var lime_vk_cmd_bind_shading_rate_image_nv = CFFI.load("lime", "lime_vk_cmd_bind_shading_rate_image_nv", 10);
+
+	private static var lime_vk_cmd_bind_transform_feedback_buffers_2_ext = CFFI.load("lime", "lime_vk_cmd_bind_transform_feedback_buffers_2_ext", 10);
+
+	private static var lime_vk_cmd_bind_transform_feedback_buffers_ext = CFFI.load("lime", "lime_vk_cmd_bind_transform_feedback_buffers_ext", 12);
+
+	private static var lime_vk_cmd_bind_vertex_buffers_3_khr = CFFI.load("lime", "lime_vk_cmd_bind_vertex_buffers_3_khr", 10);
+
+	private static var lime_vk_cmd_build_partitioned_acceleration_structures_nv = CFFI.load("lime", "lime_vk_cmd_build_partitioned_acceleration_structures_nv", 8);
+
+	private static var lime_vk_cmd_control_video_coding_khr = CFFI.load("lime", "lime_vk_cmd_control_video_coding_khr", 8);
+
+	private static var lime_vk_cmd_copy_acceleration_structure_khr = CFFI.load("lime", "lime_vk_cmd_copy_acceleration_structure_khr", 8);
+
+	private static var lime_vk_cmd_copy_acceleration_structure_nv = CFFI.load("lime", "lime_vk_cmd_copy_acceleration_structure_nv", 12);
+
+	private static var lime_vk_cmd_copy_gpa_session_results_amd = CFFI.load("lime", "lime_vk_cmd_copy_gpa_session_results_amd", 9);
+
+	private static var lime_vk_cmd_copy_memory_indirect_khr = CFFI.load("lime", "lime_vk_cmd_copy_memory_indirect_khr", 8);
+
+	private static var lime_vk_cmd_copy_memory_indirect_nv = CFFI.load("lime", "lime_vk_cmd_copy_memory_indirect_nv", 11);
+
+	private static var lime_vk_cmd_copy_memory_to_image_indirect_nv = CFFI.load("lime", "lime_vk_cmd_copy_memory_to_image_indirect_nv", 15);
+
+	private static var lime_vk_cmd_copy_micromap_ext = CFFI.load("lime", "lime_vk_cmd_copy_micromap_ext", 8);
+
+	private static var lime_vk_cmd_copy_query_pool_results_to_memory_khr = CFFI.load("lime", "lime_vk_cmd_copy_query_pool_results_to_memory_khr", 14);
+
+	private static var lime_vk_cmd_debug_marker_begin_ext = CFFI.load("lime", "lime_vk_cmd_debug_marker_begin_ext", 9);
+
+	private static var lime_vk_cmd_debug_marker_end_ext = CFFI.load("lime", "lime_vk_cmd_debug_marker_end_ext", 7);
+
+	private static var lime_vk_cmd_debug_marker_insert_ext = CFFI.load("lime", "lime_vk_cmd_debug_marker_insert_ext", 9);
+
+	private static var lime_vk_cmd_decompress_memory_indirect_count_ext = CFFI.load("lime", "lime_vk_cmd_decompress_memory_indirect_count_ext", 14);
+
+	private static var lime_vk_cmd_decompress_memory_indirect_count_nv = CFFI.load("lime", "lime_vk_cmd_decompress_memory_indirect_count_nv", 12);
+
+	private static var lime_vk_cmd_decompress_memory_nv = CFFI.load("lime", "lime_vk_cmd_decompress_memory_nv", 9);
+
+	private static var lime_vk_cmd_dispatch_indirect_2_khr = CFFI.load("lime", "lime_vk_cmd_dispatch_indirect_2_khr", 8);
+
+	private static var lime_vk_cmd_draw_indexed_indirect_2_khr = CFFI.load("lime", "lime_vk_cmd_draw_indexed_indirect_2_khr", 8);
+
+	private static var lime_vk_cmd_draw_indexed_indirect_count_2_khr = CFFI.load("lime", "lime_vk_cmd_draw_indexed_indirect_count_2_khr", 8);
+
+	private static var lime_vk_cmd_draw_indirect_2_khr = CFFI.load("lime", "lime_vk_cmd_draw_indirect_2_khr", 8);
+
+	private static var lime_vk_cmd_draw_indirect_byte_count_2_ext = CFFI.load("lime", "lime_vk_cmd_draw_indirect_byte_count_2_ext", 12);
+
+	private static var lime_vk_cmd_draw_indirect_byte_count_ext = CFFI.load("lime", "lime_vk_cmd_draw_indirect_byte_count_ext", 15);
+
+	private static var lime_vk_cmd_draw_indirect_count_2_khr = CFFI.load("lime", "lime_vk_cmd_draw_indirect_count_2_khr", 8);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_ext = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_ext", 10);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_2_ext = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_2_ext", 8);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext", 8);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_ext = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_ext", 13);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_nv = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_nv", 13);
+
+	private static var lime_vk_cmd_draw_mesh_tasks_nv = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_nv", 9);
+
+	private static var lime_vk_cmd_draw_multi_ext = CFFI.load("lime", "lime_vk_cmd_draw_multi_ext", 12);
+
+	private static var lime_vk_cmd_draw_multi_indexed_ext = CFFI.load("lime", "lime_vk_cmd_draw_multi_indexed_ext", 13);
+
+	private static var lime_vk_cmd_end_conditional_rendering_ext = CFFI.load("lime", "lime_vk_cmd_end_conditional_rendering_ext", 7);
+
+	private static var lime_vk_cmd_end_debug_utils_label_ext = CFFI.load("lime", "lime_vk_cmd_end_debug_utils_label_ext", 7);
+
+	private static var lime_vk_cmd_end_gpa_sample_amd = CFFI.load("lime", "lime_vk_cmd_end_gpa_sample_amd", 10);
+
+	private static var lime_vk_cmd_end_gpa_session_amd = CFFI.load("lime", "lime_vk_cmd_end_gpa_session_amd", 9);
+
+	private static var lime_vk_cmd_end_query_indexed_ext = CFFI.load("lime", "lime_vk_cmd_end_query_indexed_ext", 11);
+
+	private static var lime_vk_cmd_end_rendering_2_khr = CFFI.load("lime", "lime_vk_cmd_end_rendering_2_khr", 8);
+
+	private static var lime_vk_cmd_end_transform_feedback_2_ext = CFFI.load("lime", "lime_vk_cmd_end_transform_feedback_2_ext", 10);
+
+	private static var lime_vk_cmd_end_transform_feedback_ext = CFFI.load("lime", "lime_vk_cmd_end_transform_feedback_ext", 11);
+
+	private static var lime_vk_cmd_end_video_coding_khr = CFFI.load("lime", "lime_vk_cmd_end_video_coding_khr", 8);
+
+	private static var lime_vk_cmd_execute_generated_commands_ext = CFFI.load("lime", "lime_vk_cmd_execute_generated_commands_ext", 9);
+
+	private static var lime_vk_cmd_fill_memory_khr = CFFI.load("lime", "lime_vk_cmd_fill_memory_khr", 10);
+
+	private static var lime_vk_cmd_insert_debug_utils_label_ext = CFFI.load("lime", "lime_vk_cmd_insert_debug_utils_label_ext", 9);
+
+	private static var lime_vk_cmd_preprocess_generated_commands_ext = CFFI.load("lime", "lime_vk_cmd_preprocess_generated_commands_ext", 10);
+
+	private static var lime_vk_cmd_set_alpha_to_coverage_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_alpha_to_coverage_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_alpha_to_one_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_alpha_to_one_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_attachment_feedback_loop_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_attachment_feedback_loop_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_color_blend_advanced_ext = CFFI.load("lime", "lime_vk_cmd_set_color_blend_advanced_ext", 10);
+
+	private static var lime_vk_cmd_set_color_blend_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_color_blend_enable_ext", 10);
+
+	private static var lime_vk_cmd_set_color_blend_equation_ext = CFFI.load("lime", "lime_vk_cmd_set_color_blend_equation_ext", 10);
+
+	private static var lime_vk_cmd_set_color_write_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_color_write_enable_ext", 9);
+
+	private static var lime_vk_cmd_set_color_write_mask_ext = CFFI.load("lime", "lime_vk_cmd_set_color_write_mask_ext", 10);
+
+	private static var lime_vk_cmd_set_compute_occupancy_priority_nv = CFFI.load("lime", "lime_vk_cmd_set_compute_occupancy_priority_nv", 8);
+
+	private static var lime_vk_cmd_set_conservative_rasterization_mode_ext = CFFI.load("lime", "lime_vk_cmd_set_conservative_rasterization_mode_ext", 8);
+
+	private static var lime_vk_cmd_set_coverage_modulation_mode_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_modulation_mode_nv", 8);
+
+	private static var lime_vk_cmd_set_coverage_modulation_table_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_modulation_table_enable_nv", 8);
+
+	private static var lime_vk_cmd_set_coverage_modulation_table_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_modulation_table_nv", 9);
+
+	private static var lime_vk_cmd_set_coverage_reduction_mode_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_reduction_mode_nv", 8);
+
+	private static var lime_vk_cmd_set_coverage_to_color_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_to_color_enable_nv", 8);
+
+	private static var lime_vk_cmd_set_coverage_to_color_location_nv = CFFI.load("lime", "lime_vk_cmd_set_coverage_to_color_location_nv", 8);
+
+	private static var lime_vk_cmd_set_depth_bias_2_ext = CFFI.load("lime", "lime_vk_cmd_set_depth_bias_2_ext", 8);
+
+	private static var lime_vk_cmd_set_depth_clamp_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_depth_clamp_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_depth_clamp_range_ext = CFFI.load("lime", "lime_vk_cmd_set_depth_clamp_range_ext", 9);
+
+	private static var lime_vk_cmd_set_depth_clip_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_depth_clip_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_depth_clip_negative_one_to_one_ext = CFFI.load("lime", "lime_vk_cmd_set_depth_clip_negative_one_to_one_ext", 8);
+
+	private static var lime_vk_cmd_set_descriptor_buffer_offsets_ext = CFFI.load("lime", "lime_vk_cmd_set_descriptor_buffer_offsets_ext", 14);
+
+	private static var lime_vk_cmd_set_discard_rectangle_ext = CFFI.load("lime", "lime_vk_cmd_set_discard_rectangle_ext", 10);
+
+	private static var lime_vk_cmd_set_discard_rectangle_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_discard_rectangle_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_discard_rectangle_mode_ext = CFFI.load("lime", "lime_vk_cmd_set_discard_rectangle_mode_ext", 8);
+
+	private static var lime_vk_cmd_set_exclusive_scissor_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_exclusive_scissor_enable_nv", 10);
+
+	private static var lime_vk_cmd_set_exclusive_scissor_nv = CFFI.load("lime", "lime_vk_cmd_set_exclusive_scissor_nv", 10);
+
+	private static var lime_vk_cmd_set_extra_primitive_overestimation_size_ext = CFFI.load("lime", "lime_vk_cmd_set_extra_primitive_overestimation_size_ext", 8);
+
+	private static var lime_vk_cmd_set_fragment_shading_rate_enum_nv = CFFI.load("lime", "lime_vk_cmd_set_fragment_shading_rate_enum_nv", 10);
+
+	private static var lime_vk_cmd_set_fragment_shading_rate_khr = CFFI.load("lime", "lime_vk_cmd_set_fragment_shading_rate_khr", 10);
+
+	private static var lime_vk_cmd_set_line_rasterization_mode_ext = CFFI.load("lime", "lime_vk_cmd_set_line_rasterization_mode_ext", 8);
+
+	private static var lime_vk_cmd_set_line_stipple_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_line_stipple_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_logic_op_ext = CFFI.load("lime", "lime_vk_cmd_set_logic_op_ext", 8);
+
+	private static var lime_vk_cmd_set_logic_op_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_logic_op_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_patch_control_points_ext = CFFI.load("lime", "lime_vk_cmd_set_patch_control_points_ext", 8);
+
+	private static var lime_vk_cmd_set_polygon_mode_ext = CFFI.load("lime", "lime_vk_cmd_set_polygon_mode_ext", 8);
+
+	private static var lime_vk_cmd_set_primitive_restart_index_ext = CFFI.load("lime", "lime_vk_cmd_set_primitive_restart_index_ext", 8);
+
+	private static var lime_vk_cmd_set_provoking_vertex_mode_ext = CFFI.load("lime", "lime_vk_cmd_set_provoking_vertex_mode_ext", 8);
+
+	private static var lime_vk_cmd_set_rasterization_samples_ext = CFFI.load("lime", "lime_vk_cmd_set_rasterization_samples_ext", 8);
+
+	private static var lime_vk_cmd_set_rasterization_stream_ext = CFFI.load("lime", "lime_vk_cmd_set_rasterization_stream_ext", 8);
+
+	private static var lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr = CFFI.load("lime", "lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr", 8);
+
+	private static var lime_vk_cmd_set_representative_fragment_test_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_representative_fragment_test_enable_nv", 8);
+
+	private static var lime_vk_cmd_set_sample_locations_enable_ext = CFFI.load("lime", "lime_vk_cmd_set_sample_locations_enable_ext", 8);
+
+	private static var lime_vk_cmd_set_sample_mask_ext = CFFI.load("lime", "lime_vk_cmd_set_sample_mask_ext", 9);
+
+	private static var lime_vk_cmd_set_shading_rate_image_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_shading_rate_image_enable_nv", 8);
+
+	private static var lime_vk_cmd_set_tessellation_domain_origin_ext = CFFI.load("lime", "lime_vk_cmd_set_tessellation_domain_origin_ext", 8);
+
+	private static var lime_vk_cmd_set_vertex_input_ext = CFFI.load("lime", "lime_vk_cmd_set_vertex_input_ext", 11);
+
+	private static var lime_vk_cmd_set_viewport_swizzle_nv = CFFI.load("lime", "lime_vk_cmd_set_viewport_swizzle_nv", 10);
+
+	private static var lime_vk_cmd_set_viewport_w_scaling_enable_nv = CFFI.load("lime", "lime_vk_cmd_set_viewport_w_scaling_enable_nv", 8);
+
+	private static var lime_vk_cmd_set_viewport_w_scaling_nv = CFFI.load("lime", "lime_vk_cmd_set_viewport_w_scaling_nv", 10);
+
+	private static var lime_vk_cmd_trace_rays_indirect_2_khr = CFFI.load("lime", "lime_vk_cmd_trace_rays_indirect_2_khr", 9);
+
+	private static var lime_vk_cmd_trace_rays_indirect_khr = CFFI.load("lime", "lime_vk_cmd_trace_rays_indirect_khr", 13);
+
+	private static var lime_vk_cmd_trace_rays_khr = CFFI.load("lime", "lime_vk_cmd_trace_rays_khr", 14);
+
+	private static var lime_vk_cmd_update_pipeline_indirect_buffer_nv = CFFI.load("lime", "lime_vk_cmd_update_pipeline_indirect_buffer_nv", 10);
+
+	private static var lime_vk_cmd_write_acceleration_structures_properties_khr = CFFI.load("lime", "lime_vk_cmd_write_acceleration_structures_properties_khr", 13);
+
+	private static var lime_vk_cmd_write_acceleration_structures_properties_nv = CFFI.load("lime", "lime_vk_cmd_write_acceleration_structures_properties_nv", 13);
+
+	private static var lime_vk_cmd_write_buffer_marker_2_amd = CFFI.load("lime", "lime_vk_cmd_write_buffer_marker_2_amd", 13);
+
+	private static var lime_vk_cmd_write_buffer_marker_amd = CFFI.load("lime", "lime_vk_cmd_write_buffer_marker_amd", 13);
+
+	private static var lime_vk_cmd_write_marker_to_memory_amd = CFFI.load("lime", "lime_vk_cmd_write_marker_to_memory_amd", 8);
+
+	private static var lime_vk_cmd_write_micromaps_properties_ext = CFFI.load("lime", "lime_vk_cmd_write_micromaps_properties_ext", 13);
+
+	private static var lime_vk_compile_deferred_nv = CFFI.load("lime", "lime_vk_compile_deferred_nv", 8);
+
+	private static var lime_vk_copy_acceleration_structure_khr = CFFI.load("lime", "lime_vk_copy_acceleration_structure_khr", 8);
+
+	private static var lime_vk_copy_micromap_ext = CFFI.load("lime", "lime_vk_copy_micromap_ext", 8);
+
+	private static var lime_vk_create_acceleration_structure_2_khr = CFFI.load("lime", "lime_vk_create_acceleration_structure_2_khr", 6);
+
+	private static var lime_vk_create_acceleration_structure_khr = CFFI.load("lime", "lime_vk_create_acceleration_structure_khr", 6);
+
+	private static var lime_vk_create_cu_function_nvx = CFFI.load("lime", "lime_vk_create_cu_function_nvx", 7);
+
+	private static var lime_vk_create_deferred_operation_khr = CFFI.load("lime", "lime_vk_create_deferred_operation_khr", 5);
+
+	private static var lime_vk_create_display_mode_khr = CFFI.load("lime", "lime_vk_create_display_mode_khr", 8);
+
+	private static var lime_vk_create_display_plane_surface_khr = CFFI.load("lime", "lime_vk_create_display_plane_surface_khr", 4);
+
+	private static var lime_vk_create_external_compute_queue_nv = CFFI.load("lime", "lime_vk_create_external_compute_queue_nv", 6);
+
+	private static var lime_vk_create_gpa_session_amd = CFFI.load("lime", "lime_vk_create_gpa_session_amd", 6);
+
+	private static var lime_vk_create_headless_surface_ext = CFFI.load("lime", "lime_vk_create_headless_surface_ext", 4);
+
+	private static var lime_vk_create_micromap_ext = CFFI.load("lime", "lime_vk_create_micromap_ext", 6);
+
+	private static var lime_vk_create_optical_flow_session_nv = CFFI.load("lime", "lime_vk_create_optical_flow_session_nv", 6);
+
+	private static var lime_vk_create_video_session_parameters_khr = CFFI.load("lime", "lime_vk_create_video_session_parameters_khr", 6);
+
+	private static var lime_vk_debug_marker_set_object_name_ext = CFFI.load("lime", "lime_vk_debug_marker_set_object_name_ext", 7);
+
+	private static var lime_vk_debug_report_message_ext = CFFI.load("lime", "lime_vk_debug_report_message_ext", 12);
+
+	private static var lime_vk_deferred_operation_join_khr = CFFI.load("lime", "lime_vk_deferred_operation_join_khr", 7);
+
+	private static var lime_vk_destroy_acceleration_structure_khr = CFFI.load("lime", "lime_vk_destroy_acceleration_structure_khr", 7);
+
+	private static var lime_vk_destroy_acceleration_structure_nv = CFFI.load("lime", "lime_vk_destroy_acceleration_structure_nv", 7);
+
+	private static var lime_vk_destroy_cu_function_nvx = CFFI.load("lime", "lime_vk_destroy_cu_function_nvx", 7);
+
+	private static var lime_vk_destroy_cu_module_nvx = CFFI.load("lime", "lime_vk_destroy_cu_module_nvx", 7);
+
+	private static var lime_vk_destroy_debug_report_callback_ext = CFFI.load("lime", "lime_vk_destroy_debug_report_callback_ext", 5);
+
+	private static var lime_vk_destroy_debug_utils_messenger_ext = CFFI.load("lime", "lime_vk_destroy_debug_utils_messenger_ext", 5);
+
+	private static var lime_vk_destroy_deferred_operation_khr = CFFI.load("lime", "lime_vk_destroy_deferred_operation_khr", 7);
+
+	private static var lime_vk_destroy_external_compute_queue_nv = CFFI.load("lime", "lime_vk_destroy_external_compute_queue_nv", 7);
+
+	private static var lime_vk_destroy_gpa_session_amd = CFFI.load("lime", "lime_vk_destroy_gpa_session_amd", 7);
+
+	private static var lime_vk_destroy_indirect_commands_layout_ext = CFFI.load("lime", "lime_vk_destroy_indirect_commands_layout_ext", 7);
+
+	private static var lime_vk_destroy_indirect_commands_layout_nv = CFFI.load("lime", "lime_vk_destroy_indirect_commands_layout_nv", 7);
+
+	private static var lime_vk_destroy_indirect_execution_set_ext = CFFI.load("lime", "lime_vk_destroy_indirect_execution_set_ext", 7);
+
+	private static var lime_vk_destroy_micromap_ext = CFFI.load("lime", "lime_vk_destroy_micromap_ext", 7);
+
+	private static var lime_vk_destroy_optical_flow_session_nv = CFFI.load("lime", "lime_vk_destroy_optical_flow_session_nv", 7);
+
+	private static var lime_vk_destroy_pipeline_binary_khr = CFFI.load("lime", "lime_vk_destroy_pipeline_binary_khr", 7);
+
+	private static var lime_vk_destroy_shader_ext = CFFI.load("lime", "lime_vk_destroy_shader_ext", 7);
+
+	private static var lime_vk_destroy_surface_khr = CFFI.load("lime", "lime_vk_destroy_surface_khr", 5);
+
+	private static var lime_vk_destroy_swapchain_khr = CFFI.load("lime", "lime_vk_destroy_swapchain_khr", 7);
+
+	private static var lime_vk_destroy_validation_cache_ext = CFFI.load("lime", "lime_vk_destroy_validation_cache_ext", 7);
+
+	private static var lime_vk_destroy_video_session_khr = CFFI.load("lime", "lime_vk_destroy_video_session_khr", 7);
+
+	private static var lime_vk_destroy_video_session_parameters_khr = CFFI.load("lime", "lime_vk_destroy_video_session_parameters_khr", 7);
+
+	private static var lime_vk_display_power_control_ext = CFFI.load("lime", "lime_vk_display_power_control_ext", 8);
+
+	private static var lime_vk_get_acceleration_structure_device_address_khr = CFFI.load("lime", "lime_vk_get_acceleration_structure_device_address_khr", 6);
+
+	private static var lime_vk_get_acceleration_structure_memory_requirements_nv = CFFI.load("lime", "lime_vk_get_acceleration_structure_memory_requirements_nv", 6);
+
+	private static var lime_vk_get_calibrated_timestamps_khr = CFFI.load("lime", "lime_vk_get_calibrated_timestamps_khr", 9);
+
+	private static var lime_vk_get_deferred_operation_max_concurrency_khr = CFFI.load("lime", "lime_vk_get_deferred_operation_max_concurrency_khr", 7);
+
+	private static var lime_vk_get_deferred_operation_result_khr = CFFI.load("lime", "lime_vk_get_deferred_operation_result_khr", 7);
+
+	private static var lime_vk_get_descriptor_set_layout_binding_offset_ext = CFFI.load("lime", "lime_vk_get_descriptor_set_layout_binding_offset_ext", 8);
+
+	private static var lime_vk_get_descriptor_set_layout_size_ext = CFFI.load("lime", "lime_vk_get_descriptor_set_layout_size_ext", 7);
+
+	private static var lime_vk_get_device_combined_image_sampler_index_nvx = CFFI.load("lime", "lime_vk_get_device_combined_image_sampler_index_nvx", 9);
+
+	private static var lime_vk_get_device_group_present_capabilities_khr = CFFI.load("lime", "lime_vk_get_device_group_present_capabilities_khr", 5);
+
+	private static var lime_vk_get_device_group_surface_present_modes_khr = CFFI.load("lime", "lime_vk_get_device_group_surface_present_modes_khr", 7);
+
+	private static var lime_vk_get_display_mode_properties_2_khr = CFFI.load("lime", "lime_vk_get_display_mode_properties_2_khr", 8);
+
+	private static var lime_vk_get_display_mode_properties_khr = CFFI.load("lime", "lime_vk_get_display_mode_properties_khr", 8);
+
+	private static var lime_vk_get_display_plane_capabilities_2_khr = CFFI.load("lime", "lime_vk_get_display_plane_capabilities_2_khr", 6);
+
+	private static var lime_vk_get_display_plane_capabilities_khr = CFFI.load("lime", "lime_vk_get_display_plane_capabilities_khr", 8);
+
+	private static var lime_vk_get_display_plane_supported_displays_khr = CFFI.load("lime", "lime_vk_get_display_plane_supported_displays_khr", 7);
+
+	private static var lime_vk_get_drm_display_ext = CFFI.load("lime", "lime_vk_get_drm_display_ext", 7);
+
+	private static var lime_vk_get_fence_fd_khr = CFFI.load("lime", "lime_vk_get_fence_fd_khr", 6);
+
+	private static var lime_vk_get_generated_commands_memory_requirements_ext = CFFI.load("lime", "lime_vk_get_generated_commands_memory_requirements_ext", 6);
+
+	private static var lime_vk_get_generated_commands_memory_requirements_nv = CFFI.load("lime", "lime_vk_get_generated_commands_memory_requirements_nv", 6);
+
+	private static var lime_vk_get_gpa_device_clock_info_amd = CFFI.load("lime", "lime_vk_get_gpa_device_clock_info_amd", 5);
+
+	private static var lime_vk_get_gpa_session_status_amd = CFFI.load("lime", "lime_vk_get_gpa_session_status_amd", 7);
+
+	private static var lime_vk_get_image_drm_format_modifier_properties_ext = CFFI.load("lime", "lime_vk_get_image_drm_format_modifier_properties_ext", 7);
+
+	private static var lime_vk_get_image_view_address_nvx = CFFI.load("lime", "lime_vk_get_image_view_address_nvx", 7);
+
+	private static var lime_vk_get_image_view_handle_64_nvx = CFFI.load("lime", "lime_vk_get_image_view_handle_64_nvx", 6);
+
+	private static var lime_vk_get_image_view_handle_nvx = CFFI.load("lime", "lime_vk_get_image_view_handle_nvx", 6);
+
+	private static var lime_vk_get_memory_fd_khr = CFFI.load("lime", "lime_vk_get_memory_fd_khr", 6);
+
+	private static var lime_vk_get_memory_fd_properties_khr = CFFI.load("lime", "lime_vk_get_memory_fd_properties_khr", 7);
+
+	private static var lime_vk_get_partitioned_acceleration_structures_build_sizes_nv = CFFI.load("lime", "lime_vk_get_partitioned_acceleration_structures_build_sizes_nv", 6);
+
+	private static var lime_vk_get_physical_device_calibrateable_time_domains_khr = CFFI.load("lime", "lime_vk_get_physical_device_calibrateable_time_domains_khr", 6);
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv = CFFI.load("lime", "lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv", 6);
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_properties_khr = CFFI.load("lime", "lime_vk_get_physical_device_cooperative_matrix_properties_khr", 6);
+
+	private static var lime_vk_get_physical_device_cooperative_matrix_properties_nv = CFFI.load("lime", "lime_vk_get_physical_device_cooperative_matrix_properties_nv", 6);
+
+	private static var lime_vk_get_physical_device_cooperative_vector_properties_nv = CFFI.load("lime", "lime_vk_get_physical_device_cooperative_vector_properties_nv", 6);
+
+	private static var lime_vk_get_physical_device_descriptor_size_ext = CFFI.load("lime", "lime_vk_get_physical_device_descriptor_size_ext", 6);
+
+	private static var lime_vk_get_physical_device_display_plane_properties_2_khr = CFFI.load("lime", "lime_vk_get_physical_device_display_plane_properties_2_khr", 6);
+
+	private static var lime_vk_get_physical_device_display_plane_properties_khr = CFFI.load("lime", "lime_vk_get_physical_device_display_plane_properties_khr", 6);
+
+	private static var lime_vk_get_physical_device_external_image_format_properties_nv = CFFI.load("lime", "lime_vk_get_physical_device_external_image_format_properties_nv", 11);
+
+	private static var lime_vk_get_physical_device_fragment_shading_rates_khr = CFFI.load("lime", "lime_vk_get_physical_device_fragment_shading_rates_khr", 6);
+
+	private static var lime_vk_get_physical_device_multisample_properties_ext = CFFI.load("lime", "lime_vk_get_physical_device_multisample_properties_ext", 6);
+
+	private static var lime_vk_get_physical_device_optical_flow_image_formats_nv = CFFI.load("lime", "lime_vk_get_physical_device_optical_flow_image_formats_nv", 7);
+
+	private static var lime_vk_get_physical_device_present_rectangles_khr = CFFI.load("lime", "lime_vk_get_physical_device_present_rectangles_khr", 8);
+
+	private static var lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv = CFFI.load("lime", "lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv", 6);
+
+	private static var lime_vk_get_physical_device_surface_capabilities_2_ext = CFFI.load("lime", "lime_vk_get_physical_device_surface_capabilities_2_ext", 7);
+
+	private static var lime_vk_get_physical_device_surface_capabilities_2_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_capabilities_2_khr", 6);
+
+	private static var lime_vk_get_physical_device_surface_capabilities_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_capabilities_khr", 7);
+
+	private static var lime_vk_get_physical_device_surface_formats_2_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_formats_2_khr", 7);
+
+	private static var lime_vk_get_physical_device_surface_formats_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_formats_khr", 8);
+
+	private static var lime_vk_get_physical_device_surface_present_modes_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_present_modes_khr", 8);
+
+	private static var lime_vk_get_physical_device_surface_support_khr = CFFI.load("lime", "lime_vk_get_physical_device_surface_support_khr", 8);
+
+	private static var lime_vk_get_physical_device_video_format_properties_khr = CFFI.load("lime", "lime_vk_get_physical_device_video_format_properties_khr", 7);
+
+	private static var lime_vk_get_pipeline_indirect_device_address_nv = CFFI.load("lime", "lime_vk_get_pipeline_indirect_device_address_nv", 6);
+
+	private static var lime_vk_get_pipeline_key_khr = CFFI.load("lime", "lime_vk_get_pipeline_key_khr", 6);
+
+	private static var lime_vk_get_pipeline_properties_ext = CFFI.load("lime", "lime_vk_get_pipeline_properties_ext", 6);
+
+	private static var lime_vk_get_ray_tracing_shader_group_stack_size_khr = CFFI.load("lime", "lime_vk_get_ray_tracing_shader_group_stack_size_khr", 9);
+
+	private static var lime_vk_get_semaphore_fd_khr = CFFI.load("lime", "lime_vk_get_semaphore_fd_khr", 6);
+
+	private static var lime_vk_get_shader_module_identifier_ext = CFFI.load("lime", "lime_vk_get_shader_module_identifier_ext", 7);
+
+	private static var lime_vk_get_sleep_status_legacy_nv = CFFI.load("lime", "lime_vk_get_sleep_status_legacy_nv", 5);
+
+	private static var lime_vk_get_swapchain_counter_ext = CFFI.load("lime", "lime_vk_get_swapchain_counter_ext", 8);
+
+	private static var lime_vk_get_swapchain_images_khr = CFFI.load("lime", "lime_vk_get_swapchain_images_khr", 8);
+
+	private static var lime_vk_get_swapchain_status_khr = CFFI.load("lime", "lime_vk_get_swapchain_status_khr", 7);
+
+	private static var lime_vk_get_swapchain_timing_properties_ext = CFFI.load("lime", "lime_vk_get_swapchain_timing_properties_ext", 7);
+
+	private static var lime_vk_get_video_session_memory_requirements_khr = CFFI.load("lime", "lime_vk_get_video_session_memory_requirements_khr", 8);
+
+	private static var lime_vk_import_fence_fd_khr = CFFI.load("lime", "lime_vk_import_fence_fd_khr", 6);
+
+	private static var lime_vk_import_semaphore_fd_khr = CFFI.load("lime", "lime_vk_import_semaphore_fd_khr", 6);
+
+	private static var lime_vk_latency_sleep_legacy_nv = CFFI.load("lime", "lime_vk_latency_sleep_legacy_nv", 9);
+
+	private static var lime_vk_latency_sleep_nv = CFFI.load("lime", "lime_vk_latency_sleep_nv", 8);
+
+	private static var lime_vk_merge_validation_caches_ext = CFFI.load("lime", "lime_vk_merge_validation_caches_ext", 9);
+
+	private static var lime_vk_queue_begin_debug_utils_label_ext = CFFI.load("lime", "lime_vk_queue_begin_debug_utils_label_ext", 9);
+
+	private static var lime_vk_queue_end_debug_utils_label_ext = CFFI.load("lime", "lime_vk_queue_end_debug_utils_label_ext", 7);
+
+	private static var lime_vk_queue_insert_debug_utils_label_ext = CFFI.load("lime", "lime_vk_queue_insert_debug_utils_label_ext", 9);
+
+	private static var lime_vk_queue_notify_out_of_band_legacy_nv = CFFI.load("lime", "lime_vk_queue_notify_out_of_band_legacy_nv", 8);
+
+	private static var lime_vk_queue_notify_out_of_band_nv = CFFI.load("lime", "lime_vk_queue_notify_out_of_band_nv", 8);
+
+	private static var lime_vk_register_device_event_ext = CFFI.load("lime", "lime_vk_register_device_event_ext", 6);
+
+	private static var lime_vk_register_display_event_ext = CFFI.load("lime", "lime_vk_register_display_event_ext", 8);
+
+	private static var lime_vk_release_captured_pipeline_data_khr = CFFI.load("lime", "lime_vk_release_captured_pipeline_data_khr", 6);
+
+	private static var lime_vk_release_display_ext = CFFI.load("lime", "lime_vk_release_display_ext", 7);
+
+	private static var lime_vk_release_profiling_lock_khr = CFFI.load("lime", "lime_vk_release_profiling_lock_khr", 5);
+
+	private static var lime_vk_reset_gpa_session_amd = CFFI.load("lime", "lime_vk_reset_gpa_session_amd", 7);
+
+	private static var lime_vk_set_debug_utils_object_name_ext = CFFI.load("lime", "lime_vk_set_debug_utils_object_name_ext", 7);
+
+	private static var lime_vk_set_device_memory_priority_ext = CFFI.load("lime", "lime_vk_set_device_memory_priority_ext", 8);
+
+	private static var lime_vk_set_gpa_device_clock_mode_amd = CFFI.load("lime", "lime_vk_set_gpa_device_clock_mode_amd", 5);
+
+	private static var lime_vk_set_hdr_metadata_ext = CFFI.load("lime", "lime_vk_set_hdr_metadata_ext", 8);
+
+	private static var lime_vk_set_latency_marker_legacy_nv = CFFI.load("lime", "lime_vk_set_latency_marker_legacy_nv", 8);
+
+	private static var lime_vk_set_latency_marker_nv = CFFI.load("lime", "lime_vk_set_latency_marker_nv", 8);
+
+	private static var lime_vk_set_latency_sleep_mode_legacy_nv = CFFI.load("lime", "lime_vk_set_latency_sleep_mode_legacy_nv", 8);
+
+	private static var lime_vk_set_latency_sleep_mode_nv = CFFI.load("lime", "lime_vk_set_latency_sleep_mode_nv", 8);
+
+	private static var lime_vk_set_local_dimming_amd = CFFI.load("lime", "lime_vk_set_local_dimming_amd", 8);
+
+	private static var lime_vk_set_swapchain_present_timing_queue_size_ext = CFFI.load("lime", "lime_vk_set_swapchain_present_timing_queue_size_ext", 8);
+
+	private static var lime_vk_shutdown_latency_device_legacy_nv = CFFI.load("lime", "lime_vk_shutdown_latency_device_legacy_nv", 5);
+
+	private static var lime_vk_unregister_custom_border_color_ext = CFFI.load("lime", "lime_vk_unregister_custom_border_color_ext", 6);
+
+	private static var lime_vk_update_indirect_execution_set_pipeline_ext = CFFI.load("lime", "lime_vk_update_indirect_execution_set_pipeline_ext", 9);
+
+	private static var lime_vk_update_indirect_execution_set_shader_ext = CFFI.load("lime", "lime_vk_update_indirect_execution_set_shader_ext", 9);
+
+	private static var lime_vk_update_video_session_parameters_khr = CFFI.load("lime", "lime_vk_update_video_session_parameters_khr", 8);
+
+	private static var lime_vk_wait_for_present_2_khr = CFFI.load("lime", "lime_vk_wait_for_present_2_khr", 8);
+
+	private static var lime_vk_wait_for_present_khr = CFFI.load("lime", "lime_vk_wait_for_present_khr", 11);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_cmd_push_constants_2 = CFFI.load("lime", "lime_vk_cmd_push_constants_2", 9);
+
+	private static var lime_vk_cmd_push_descriptor_set_with_template_2 = CFFI.load("lime", "lime_vk_cmd_push_descriptor_set_with_template_2", 9);
+
+	private static var lime_vk_cmd_update_memory_khr = CFFI.load("lime", "lime_vk_cmd_update_memory_khr", 10);
+
+	private static var lime_vk_create_validation_cache_ext = CFFI.load("lime", "lime_vk_create_validation_cache_ext", 7);
+
+	private static var lime_vk_debug_marker_set_object_tag_ext = CFFI.load("lime", "lime_vk_debug_marker_set_object_tag_ext", 7);
+
+	private static var lime_vk_set_debug_utils_object_tag_ext = CFFI.load("lime", "lime_vk_set_debug_utils_object_tag_ext", 7);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	private static var lime_vk_cmd_bind_descriptor_sets_2 = CFFI.load("lime", "lime_vk_cmd_bind_descriptor_sets_2", 10);
+
+	private static var lime_vk_cmd_push_descriptor_set = CFFI.load("lime", "lime_vk_cmd_push_descriptor_set", 16);
+
+	private static var lime_vk_cmd_push_descriptor_set_2 = CFFI.load("lime", "lime_vk_cmd_push_descriptor_set_2", 12);
+
+	private static var lime_vk_cmd_push_descriptor_set_with_template = CFFI.load("lime", "lime_vk_cmd_push_descriptor_set_with_template", 13);
+
+	private static var lime_vk_cmd_set_rendering_attachment_locations = CFFI.load("lime", "lime_vk_cmd_set_rendering_attachment_locations", 9);
+
+	private static var lime_vk_cmd_set_rendering_input_attachment_indices = CFFI.load("lime", "lime_vk_cmd_set_rendering_input_attachment_indices", 11);
+
+	private static var lime_vk_copy_image_to_image = CFFI.load("lime", "lime_vk_copy_image_to_image", 7);
+
+	private static var lime_vk_copy_image_to_memory = CFFI.load("lime", "lime_vk_copy_image_to_memory", 8);
+
+	private static var lime_vk_copy_memory_to_image = CFFI.load("lime", "lime_vk_copy_memory_to_image", 8);
+
+	private static var lime_vk_get_device_image_subresource_layout = CFFI.load("lime", "lime_vk_get_device_image_subresource_layout", 9);
+
+	private static var lime_vk_get_rendering_area_granularity = CFFI.load("lime", "lime_vk_get_rendering_area_granularity", 7);
+
+	private static var lime_vk_map_memory_2 = CFFI.load("lime", "lime_vk_map_memory_2", 6);
+
+	private static var lime_vk_anti_lag_update_amd = CFFI.load("lime", "lime_vk_anti_lag_update_amd", 7);
+
+	private static var lime_vk_bind_acceleration_structure_memory_nv = CFFI.load("lime", "lime_vk_bind_acceleration_structure_memory_nv", 8);
+
+	private static var lime_vk_cmd_begin_gpa_sample_amd = CFFI.load("lime", "lime_vk_cmd_begin_gpa_sample_amd", 11);
+
+	private static var lime_vk_cmd_begin_video_coding_khr = CFFI.load("lime", "lime_vk_cmd_begin_video_coding_khr", 10);
+
+	private static var lime_vk_cmd_copy_image_to_memory_khr = CFFI.load("lime", "lime_vk_cmd_copy_image_to_memory_khr", 9);
+
+	private static var lime_vk_cmd_copy_memory_khr = CFFI.load("lime", "lime_vk_cmd_copy_memory_khr", 9);
+
+	private static var lime_vk_cmd_copy_memory_to_image_indirect_khr = CFFI.load("lime", "lime_vk_cmd_copy_memory_to_image_indirect_khr", 9);
+
+	private static var lime_vk_cmd_copy_memory_to_image_khr = CFFI.load("lime", "lime_vk_cmd_copy_memory_to_image_khr", 9);
+
+	private static var lime_vk_cmd_decode_video_khr = CFFI.load("lime", "lime_vk_cmd_decode_video_khr", 12);
+
+	private static var lime_vk_cmd_decompress_memory_ext = CFFI.load("lime", "lime_vk_cmd_decompress_memory_ext", 9);
+
+	private static var lime_vk_cmd_encode_video_khr = CFFI.load("lime", "lime_vk_cmd_encode_video_khr", 12);
+
+	private static var lime_vk_cmd_execute_generated_commands_nv = CFFI.load("lime", "lime_vk_cmd_execute_generated_commands_nv", 10);
+
+	private static var lime_vk_cmd_optical_flow_execute_nv = CFFI.load("lime", "lime_vk_cmd_optical_flow_execute_nv", 11);
+
+	private static var lime_vk_cmd_preprocess_generated_commands_nv = CFFI.load("lime", "lime_vk_cmd_preprocess_generated_commands_nv", 9);
+
+	private static var lime_vk_cmd_push_data_ext = CFFI.load("lime", "lime_vk_cmd_push_data_ext", 8);
+
+	private static var lime_vk_cmd_set_checkpoint_nv = CFFI.load("lime", "lime_vk_cmd_set_checkpoint_nv", 8);
+
+	private static var lime_vk_cmd_set_coarse_sample_order_nv = CFFI.load("lime", "lime_vk_cmd_set_coarse_sample_order_nv", 11);
+
+	private static var lime_vk_cmd_set_descriptor_buffer_offsets_2_ext = CFFI.load("lime", "lime_vk_cmd_set_descriptor_buffer_offsets_2_ext", 10);
+
+	private static var lime_vk_cmd_set_sample_locations_ext = CFFI.load("lime", "lime_vk_cmd_set_sample_locations_ext", 9);
+
+	private static var lime_vk_cmd_set_viewport_shading_rate_palette_nv = CFFI.load("lime", "lime_vk_cmd_set_viewport_shading_rate_palette_nv", 11);
+
+	private static var lime_vk_create_cu_module_nvx = CFFI.load("lime", "lime_vk_create_cu_module_nvx", 7);
+
+	private static var lime_vk_create_indirect_commands_layout_nv = CFFI.load("lime", "lime_vk_create_indirect_commands_layout_nv", 10);
+
+	private static var lime_vk_create_shared_swapchains_khr = CFFI.load("lime", "lime_vk_create_shared_swapchains_khr", 9);
+
+	private static var lime_vk_create_swapchain_khr = CFFI.load("lime", "lime_vk_create_swapchain_khr", 7);
+
+	private static var lime_vk_get_device_acceleration_structure_compatibility_khr = CFFI.load("lime", "lime_vk_get_device_acceleration_structure_compatibility_khr", 7);
+
+	private static var lime_vk_get_device_micromap_compatibility_ext = CFFI.load("lime", "lime_vk_get_device_micromap_compatibility_ext", 7);
+
+	private static var lime_vk_get_memory_host_pointer_properties_ext = CFFI.load("lime", "lime_vk_get_memory_host_pointer_properties_ext", 7);
+
+	private static var lime_vk_get_physical_device_queue_family_performance_query_passes_khr = CFFI.load("lime", "lime_vk_get_physical_device_queue_family_performance_query_passes_khr", 7);
+
+	private static var lime_vk_get_physical_device_video_encode_quality_level_properties_khr = CFFI.load("lime", "lime_vk_get_physical_device_video_encode_quality_level_properties_khr", 7);
+
+	private static var lime_vk_get_shader_module_create_info_identifier_ext = CFFI.load("lime", "lime_vk_get_shader_module_create_info_identifier_ext", 7);
+
+	private static var lime_vk_release_swapchain_images_khr = CFFI.load("lime", "lime_vk_release_swapchain_images_khr", 7);
+
+	private static var lime_vk_cmd_bind_index_buffer_2 = CFFI.load("lime", "lime_vk_cmd_bind_index_buffer_2", 14);
+
+	private static var lime_vk_cmd_set_line_stipple = CFFI.load("lime", "lime_vk_cmd_set_line_stipple", 9);
+
+	private static var lime_vk_get_image_subresource_layout_2 = CFFI.load("lime", "lime_vk_get_image_subresource_layout_2", 8);
+
+	private static var lime_vk_transition_image_layout = CFFI.load("lime", "lime_vk_transition_image_layout", 7);
+
+	private static var lime_vk_unmap_memory_2 = CFFI.load("lime", "lime_vk_unmap_memory_2", 6);
+
 	#end
 	private static var lime_vk_get_last_error = CFFI.load("lime", "lime_vk_get_last_error", 0);
 	private static var lime_vulkan_renderer_create = CFFI.load("lime", "lime_vulkan_renderer_create", 2);
@@ -1492,6 +10530,7 @@ class NativeCFFI
 	private static var lime_vulkan_renderer_clear_overlay = CFFI.load("lime", "lime_vulkan_renderer_clear_overlay", 1);
 	private static var lime_vulkan_renderer_render = CFFI.load("lime", "lime_vulkan_renderer_render", 5);
 	private static var lime_vulkan_renderer_resize = CFFI.load("lime", "lime_vulkan_renderer_resize", 1);
+	private static var lime_glslang_compile = CFFI.load("lime", "lime_glslang_compile", 2);
 	private static var lime_window_get_width = CFFI.load("lime", "lime_window_get_width", 1);
 	private static var lime_window_get_x = CFFI.load("lime", "lime_window_get_x", 1);
 	private static var lime_window_get_y = CFFI.load("lime", "lime_window_get_y", 1);
@@ -1509,6 +10548,11 @@ class NativeCFFI
 	private static var lime_window_set_minimized = CFFI.load("lime", "lime_window_set_minimized", 2);
 	private static var lime_window_set_mouse_lock = CFFI.load("lime", "lime_window_set_mouse_lock", 2);
 	private static var lime_window_set_opacity = CFFI.load("lime", "lime_window_set_opacity", 2);
+	private static var lime_window_set_progress_state = CFFI.load("lime", "lime_window_set_progress_state", 2);
+	private static var lime_window_set_progress_value = CFFI.load("lime", "lime_window_set_progress_value", 2);
+	private static var lime_window_set_mouse_rect = CFFI.load("lime", "lime_window_set_mouse_rect", 2);
+	private static var lime_window_set_cursor_image = CFFI.load("lime", "lime_window_set_cursor_image", 2);
+	private static var lime_window_set_blur = CFFI.load("lime", "lime_window_set_blur", 3);
 	private static var lime_window_set_resizable = CFFI.load("lime", "lime_window_set_resizable", 2);
 	private static var lime_window_set_text_input_enabled = CFFI.load("lime", "lime_window_set_text_input_enabled", 2);
 	private static var lime_window_set_text_input_rect = CFFI.load("lime", "lime_window_set_text_input_rect", 2);
@@ -1565,6 +10609,7 @@ class NativeCFFI
 		return null;
 	}
 
+	#if (lime_sdl_sound && !macro)
 	@:hlNative("lime", "hl_sdl_sound_get_info_from_bytes") private static function lime_sdl_sound_get_info_from_bytes(bytes:Bytes):Dynamic
 	{
 		return null;
@@ -1601,6 +10646,7 @@ class NativeCFFI
 	}
 
 	@:hlNative("lime", "hl_sdl_sound_stream_clear") private static function lime_sdl_sound_stream_clear(stream:CFFIPointer):Void {}
+	#end
 
 	@:hlNative("lime", "hl_bytes_from_data_pointer") private static function lime_bytes_from_data_pointer(data:Float, length:Int, bytes:Bytes):Bytes
 	{
@@ -1808,10 +10854,6 @@ class NativeCFFI
 
 	@:hlNative("lime", "hl_font_set_size") private static function lime_font_set_size(handle:CFFIPointer, size:Int, dpi:Int):Void {}
 
-	@:hlNative("lime", "hl_font_set_stem_darkening") private static function lime_font_set_stem_darkening(handle:CFFIPointer, enable:Bool):Void {}
-
-	@:hlNative("lime", "hl_font_set_stem_darkening_parameters") private static function lime_font_set_stem_darkening_parameters(handle:CFFIPointer, params:hl.NativeArray<Int>):Void {}
-
 	@:hlNative("lime", "hl_gamepad_add_mappings") private static function lime_gamepad_add_mappings(mappings:hl.NativeArray<String>):Void {}
 
 	@:hlNative("lime", "hl_gamepad_get_device_guid") private static function lime_gamepad_get_device_guid(id:Int):hl.Bytes
@@ -1826,6 +10868,11 @@ class NativeCFFI
 
 	@:hlNative("lime", "hl_gamepad_rumble") private static function lime_gamepad_rumble(id:Int, lowFrequencyRumble:Float, highFrequencyRumble:Float,
 		duration:Int):Void {}
+
+	@:hlNative("lime", "hl_gamepad_rumble_triggers") private static function lime_gamepad_rumble_triggers(id:Int, leftTrigger:Float,
+		rightTrigger:Float, duration:Int):Void {}
+
+	@:hlNative("lime", "hl_gamepad_set_led") private static function lime_gamepad_set_led(id:Int, red:Int, green:Int, blue:Int):Void {}
 
 	@:hlNative("lime", "hl_gamepad_event_manager_register") private static function lime_gamepad_event_manager_register(callback:Void->Void,
 		eventObject:GamepadEventInfo):Void {}
@@ -2048,6 +11095,16 @@ class NativeCFFI
 		return null;
 	}
 
+	@:hlNative("lime", "hl_system_get_theme") private static function lime_system_get_theme():Int
+	{
+		return 0;
+	}
+
+	@:hlNative("lime", "hl_system_is_tablet") private static function lime_system_is_tablet():Bool
+	{
+		return false;
+	}
+
 	@:hlNative("lime", "hl_system_get_timer") private static function lime_system_get_timer():Float
 	{
 		return 0;
@@ -2231,9 +11288,33 @@ class NativeCFFI
 	}
 
 	@:hlNative("lime", "hl_vk_create_semaphore") private static function lime_vk_create_semaphore(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
-			deviceHigh:Int, deviceLow:Int):Dynamic
+		deviceHigh:Int, deviceLow:Int):Dynamic
 	{
 		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_timeline_semaphore") private static function lime_vk_create_timeline_semaphore(handle:CFFIPointer, instanceHigh:Int,
+		instanceLow:Int, deviceHigh:Int, deviceLow:Int, initialHigh:Int, initialLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_semaphore_counter_value") private static function lime_vk_get_semaphore_counter_value(handle:CFFIPointer, instanceHigh:Int,
+		instanceLow:Int, deviceHigh:Int, deviceLow:Int, semaphoreHigh:Int, semaphoreLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_signal_semaphore") private static function lime_vk_signal_semaphore(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+		deviceHigh:Int, deviceLow:Int, semaphoreHigh:Int, semaphoreLow:Int, valueHigh:Int, valueLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_wait_semaphores") private static function lime_vk_wait_semaphores(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+		deviceHigh:Int, deviceLow:Int, state:hl.NativeArray<Int>, timeoutHigh:Int, timeoutLow:Int):Bool
+	{
+		return false;
 	}
 
 	@:hlNative("lime", "hl_vk_destroy_semaphore") private static function lime_vk_destroy_semaphore(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
@@ -2262,6 +11343,13 @@ class NativeCFFI
 
 	@:hlNative("lime", "hl_vk_queue_submit") private static function lime_vk_queue_submit(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
 			deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, commandBufferHigh:Int, commandBufferLow:Int, fenceHigh:Int, fenceLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_bind_sparse") private static function lime_vk_queue_bind_sparse(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, imageHigh:Int, imageLow:Int, memoryHigh:Int, memoryLow:Int,
+			state:hl.NativeArray<Int>):Bool
 	{
 		return false;
 	}
@@ -2342,11 +11430,25 @@ class NativeCFFI
 		return null;
 	}
 
+	@:hlNative("lime", "hl_vk_create_image_ex") private static function lime_vk_create_image_ex(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, width:Int, height:Int, depth:Int, mipLevels:Int, arrayLayers:Int, format:Int, imageType:Int, tiling:Int, usage:Int,
+			samples:Int, createFlags:Int):Dynamic
+	{
+		return null;
+	}
+
 	@:hlNative("lime", "hl_vk_destroy_image") private static function lime_vk_destroy_image(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
 		deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Void {}
 
 	@:hlNative("lime", "hl_vk_get_image_memory_requirements") private static function lime_vk_get_image_memory_requirements(handle:CFFIPointer,
 			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_subresource_layout") private static function lime_vk_get_image_subresource_layout(handle:CFFIPointer,
+			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int, aspectMask:Int, mipLevel:Int,
+			arrayLayer:Int):Dynamic
 	{
 		return null;
 	}
@@ -2470,6 +11572,12 @@ class NativeCFFI
 		return null;
 	}
 
+	@:hlNative("lime", "hl_vk_free_descriptor_set") private static function lime_vk_free_descriptor_set(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, poolHigh:Int, poolLow:Int, setHigh:Int, setLow:Int):Bool
+	{
+		return false;
+	}
+
 	@:hlNative("lime", "hl_vk_update_descriptor_set_image") private static function lime_vk_update_descriptor_set_image(handle:CFFIPointer, instanceHigh:Int,
 			instanceLow:Int, deviceHigh:Int, deviceLow:Int, setHigh:Int, setLow:Int, binding:Int, descriptorType:Int, imageViewHigh:Int, imageViewLow:Int,
 			samplerHigh:Int, samplerLow:Int, imageLayout:Int):Bool
@@ -2538,6 +11646,19 @@ class NativeCFFI
 	}
 
 	@:hlNative("lime", "hl_vk_cmd_end_render_pass") private static function lime_vk_cmd_end_render_pass(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_rendering") private static function lime_vk_cmd_begin_rendering(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, state:hl.NativeArray<Int>,
+			clear:hl.NativeArray<Float>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_rendering") private static function lime_vk_cmd_end_rendering(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
 			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
 	{
 		return false;
@@ -2653,6 +11774,19 @@ class NativeCFFI
 		return false;
 	}
 
+	@:hlNative("lime", "hl_vk_cmd_pipeline_barrier2") private static function lime_vk_cmd_pipeline_barrier2(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_pipeline_barrier_image2") private static function lime_vk_cmd_pipeline_barrier_image2(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int,
+			state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
 	@:hlNative("lime", "hl_vk_cmd_clear_color_image") private static function lime_vk_cmd_clear_color_image(handle:CFFIPointer, instanceHigh:Int,
 			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, imageHigh:Int, imageLow:Int, layout:Int,
 			aspectMask:Int, clear:hl.NativeArray<Float>):Bool
@@ -2687,6 +11821,4227 @@ class NativeCFFI
 	{
 		return false;
 	}
+
+	@:hlNative("lime", "hl_vk_create_event") private static function lime_vk_create_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, flags:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_event") private static function lime_vk_destroy_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_get_event_status") private static function lime_vk_get_event_status(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Int
+	{
+		return 0;
+	}
+
+	@:hlNative("lime", "hl_vk_get_fence_status") private static function lime_vk_get_fence_status(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, fenceHigh:Int, fenceLow:Int):Int
+	{
+		return 0;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_event") private static function lime_vk_cmd_set_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_reset_event") private static function lime_vk_cmd_reset_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_wait_events") private static function lime_vk_cmd_wait_events(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, srcStageMask:Int, dstStageMask:Int,
+			state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_dispatch") private static function lime_vk_cmd_dispatch(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, x:Int, y:Int, z:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_dispatch_indirect") private static function lime_vk_cmd_dispatch_indirect(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int,
+			offsetLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_next_subpass") private static function lime_vk_cmd_next_subpass(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, contents:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_execute_commands") private static function lime_vk_cmd_execute_commands(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_line_width") private static function lime_vk_cmd_set_line_width(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, width:Float):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_bias") private static function lime_vk_cmd_set_depth_bias(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, constantFactor:Float, slopeFactor:Float, clamp:Float):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_blend_constants") private static function lime_vk_cmd_set_blend_constants(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, red:Float, green:Float, blue:Float,
+			alpha:Float):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_bounds") private static function lime_vk_cmd_set_depth_bounds(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, minBounds:Float, maxBounds:Float):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_stencil_compare_mask") private static function lime_vk_cmd_set_stencil_compare_mask(handle:CFFIPointer,
+			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int,
+			compareMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_stencil_write_mask") private static function lime_vk_cmd_set_stencil_write_mask(handle:CFFIPointer,
+			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int,
+			writeMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_stencil_reference") private static function lime_vk_cmd_set_stencil_reference(handle:CFFIPointer,
+			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int,
+			reference:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_compute_pipeline") private static function lime_vk_create_compute_pipeline(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, layoutHigh:Int, layoutLow:Int, shaderHigh:Int, shaderLow:Int, cacheHigh:Int, cacheLow:Int,
+			flags:Int, requiredSubgroupSize:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_image") private static function lime_vk_cmd_copy_image(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceHigh:Int, sourceLow:Int, destinationHigh:Int,
+			destinationLow:Int, state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_resolve_image") private static function lime_vk_cmd_resolve_image(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceHigh:Int, sourceLow:Int, destinationHigh:Int,
+			destinationLow:Int, state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_update_buffer") private static function lime_vk_cmd_update_buffer(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int,
+			bytes:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_fill_buffer") private static function lime_vk_cmd_fill_buffer(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int,
+			sizeHigh:Int, sizeLow:Int, value:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_query") private static function lime_vk_cmd_begin_query(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, queryIndex:Int, flags:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_query") private static function lime_vk_cmd_end_query(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, queryIndex:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_reset_query_pool") private static function lime_vk_cmd_reset_query_pool(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int, firstQuery:Int,
+			queryCount:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_timestamp") private static function lime_vk_cmd_write_timestamp(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineStage:Int, poolHigh:Int, poolLow:Int,
+			queryIndex:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_query_pool_results") private static function lime_vk_cmd_copy_query_pool_results(handle:CFFIPointer,
+			instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, poolHigh:Int, poolLow:Int,
+			bufferHigh:Int, bufferLow:Int, state:hl.NativeArray<Int>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_query_pool") private static function lime_vk_create_query_pool(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, queryType:Int, queryCount:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_query_pool") private static function lime_vk_destroy_query_pool(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, poolHigh:Int, poolLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_reset_query_pool") private static function lime_vk_reset_query_pool(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, poolHigh:Int, poolLow:Int, firstQuery:Int, queryCount:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_query_pool_results") private static function lime_vk_get_query_pool_results(handle:CFFIPointer, instanceHigh:Int,
+			instanceLow:Int, deviceHigh:Int, deviceLow:Int, poolHigh:Int, poolLow:Int, bytes:Bytes, firstQuery:Int, queryCount:Int, stride:Int,
+			flags:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_wait_for_fences") private static function lime_vk_wait_for_fences(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int,
+			deviceHigh:Int, deviceLow:Int, state:hl.NativeArray<Int>, timeoutHigh:Int, timeoutLow:Int):Bool
+	{
+		return false;
+	}
+	@:hlNative("lime", "hl_vk_get_physical_device_features") private static function lime_vk_get_physical_device_features(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_format_properties") private static function lime_vk_get_physical_device_format_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_image_format_properties") private static function lime_vk_get_physical_device_image_format_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, tiling:Int, usage:Int, flags:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_memory_properties") private static function lime_vk_get_physical_device_memory_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_sparse_image_format_properties") private static function lime_vk_get_physical_device_sparse_image_format_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, samples:Int, usage:Int, tiling:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_buffer_view") private static function lime_vk_create_buffer_view(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int, format:Int, offset:Int, range:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_buffer_view") private static function lime_vk_destroy_buffer_view(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferViewHigh:Int, bufferViewLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_get_device_queue") private static function lime_vk_get_device_queue(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueFamilyIndex:Int, queueIndex:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_memory_commitment") private static function lime_vk_get_device_memory_commitment(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_sparse_memory_requirements") private static function lime_vk_get_image_sparse_memory_requirements(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_merge_pipeline_caches") private static function lime_vk_merge_pipeline_caches(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, destinationHigh:Int, destinationLow:Int, sourceCaches:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_render_area_granularity") private static function lime_vk_get_render_area_granularity(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, renderPassHigh:Int, renderPassLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_set_event") private static function lime_vk_set_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_reset_event") private static function lime_vk_reset_event(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, eventHigh:Int, eventLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_enumerate_instance_extension_properties") private static function lime_vk_enumerate_instance_extension_properties(handle:CFFIPointer, layerName:String):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_enumerate_instance_layer_properties") private static function lime_vk_enumerate_instance_layer_properties(handle:CFFIPointer):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_enumerate_device_extension_properties") private static function lime_vk_enumerate_device_extension_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, layerName:String):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_enumerate_device_layer_properties") private static function lime_vk_enumerate_device_layer_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_enumerate_instance_version") private static function lime_vk_enumerate_instance_version(handle:CFFIPointer):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_features2") private static function lime_vk_get_physical_device_features2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, structTypes:hl.NativeArray<Dynamic>):hl.NativeArray<Int>
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_descriptor_indexing_properties") private static function lime_vk_get_descriptor_indexing_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_vulkan12_properties") private static function lime_vk_get_vulkan12_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_inline_uniform_block_properties") private static function lime_vk_get_inline_uniform_block_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_subgroup_size_control_properties") private static function lime_vk_get_subgroup_size_control_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_buffer_memory_requirements2") private static function lime_vk_get_buffer_memory_requirements2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_memory_requirements2") private static function lime_vk_get_image_memory_requirements2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_bind_buffer_memory2") private static function lime_vk_bind_buffer_memory2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int, memoryHigh:Int, memoryLow:Int, offsetHigh:Int, offsetLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_bind_image_memory2") private static function lime_vk_bind_image_memory2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int, memoryHigh:Int, memoryLow:Int, offsetHigh:Int, offsetLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_queue2") private static function lime_vk_get_device_queue2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, flags:Int, queueFamilyIndex:Int, queueIndex:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_descriptor_set_layout_support") private static function lime_vk_get_descriptor_set_layout_support(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bindings:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_buffer_device_address") private static function lime_vk_get_buffer_device_address(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_buffer_opaque_capture_address") private static function lime_vk_get_buffer_opaque_capture_address(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bufferHigh:Int, bufferLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_memory_opaque_capture_address") private static function lime_vk_get_device_memory_opaque_capture_address(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indirect_count") private static function lime_vk_cmd_draw_indirect_count(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indexed_indirect_count") private static function lime_vk_cmd_draw_indexed_indirect_count(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, state:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_trim_command_pool") private static function lime_vk_trim_command_pool(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandPoolHigh:Int, commandPoolLow:Int, flags:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_create_render_pass2") private static function lime_vk_create_render_pass2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, state:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_render_pass2") private static function lime_vk_cmd_begin_render_pass2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, renderPassHigh:Int, renderPassLow:Int, framebufferHigh:Int, framebufferLow:Int, state:hl.NativeArray<Dynamic>, clear:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_next_subpass2") private static function lime_vk_cmd_next_subpass2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, contents:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_render_pass2") private static function lime_vk_cmd_end_render_pass2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_descriptor_update_template") private static function lime_vk_create_descriptor_update_template(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, state:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_descriptor_update_template") private static function lime_vk_destroy_descriptor_update_template(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, updateTemplateHigh:Int, updateTemplateLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_update_descriptor_set_with_template") private static function lime_vk_update_descriptor_set_with_template(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, setHigh:Int, setLow:Int, updateTemplateHigh:Int, updateTemplateLow:Int, bytes:Bytes, byteOffset:Int, byteLength:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_external_buffer_properties") private static function lime_vk_get_physical_device_external_buffer_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, flags:Int, usage:Int, handleType:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_external_fence_properties") private static function lime_vk_get_physical_device_external_fence_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, handleType:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_external_semaphore_properties") private static function lime_vk_get_physical_device_external_semaphore_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, handleType:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_properties2") private static function lime_vk_get_physical_device_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_format_properties2") private static function lime_vk_get_physical_device_format_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_image_format_properties2") private static function lime_vk_get_physical_device_image_format_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, tiling:Int, usage:Int, flags:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_memory_properties2") private static function lime_vk_get_physical_device_memory_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_queue_family_properties2") private static function lime_vk_get_physical_device_queue_family_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_sparse_image_format_properties2") private static function lime_vk_get_physical_device_sparse_image_format_properties2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, imageType:Int, samples:Int, usage:Int, tiling:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_sampler_ycbcr_conversion") private static function lime_vk_create_sampler_ycbcr_conversion(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, format:Int, ycbcrModel:Int, ycbcrRange:Int, rSwizzle:Int, gSwizzle:Int, bSwizzle:Int, aSwizzle:Int, xChromaOffset:Int, yChromaOffset:Int, chromaFilter:Int, forceExplicitReconstruction:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_sampler_ycbcr_conversion") private static function lime_vk_destroy_sampler_ycbcr_conversion(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, conversionHigh:Int, conversionLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_enumerate_physical_device_groups") private static function lime_vk_enumerate_physical_device_groups(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_group_peer_memory_features") private static function lime_vk_get_device_group_peer_memory_features(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryTypeIndex:Int, localDeviceIndex:Int, remoteDeviceIndex:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_device_mask") private static function lime_vk_cmd_set_device_mask(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, deviceMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_dispatch_base") private static function lime_vk_cmd_dispatch_base(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, groupCountX:Int, groupCountY:Int, groupCountZ:Int, baseGroupX:Int, baseGroupY:Int, baseGroupZ:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_sparse_memory_requirements2") private static function lime_vk_get_image_sparse_memory_requirements2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_capabilities") private static function lime_vk_get_physical_device_surface_capabilities(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_formats") private static function lime_vk_get_physical_device_surface_formats(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_present_modes") private static function lime_vk_get_physical_device_surface_present_modes(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_device_with_features") private static function lime_vk_create_device_with_features(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:hl.NativeArray<Dynamic>, features:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_allocate_memory_ex") private static function lime_vk_allocate_memory_ex(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, deviceHigh:Int, deviceLow:Int, sizeHigh:Int, sizeLow:Int, memoryTypeBits:Int, properties:Int, allocateFlags:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_cull_mode") private static function lime_vk_cmd_set_cull_mode(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, cullMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_front_face") private static function lime_vk_cmd_set_front_face(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, frontFace:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_primitive_topology") private static function lime_vk_cmd_set_primitive_topology(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveTopology:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_test_enable") private static function lime_vk_cmd_set_depth_test_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthTestEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_write_enable") private static function lime_vk_cmd_set_depth_write_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthWriteEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_compare_op") private static function lime_vk_cmd_set_depth_compare_op(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthCompareOp:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_bounds_test_enable") private static function lime_vk_cmd_set_depth_bounds_test_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthBoundsTestEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_stencil_test_enable") private static function lime_vk_cmd_set_stencil_test_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stencilTestEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_stencil_op") private static function lime_vk_cmd_set_stencil_op(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, faceMask:Int, failOp:Int, passOp:Int, depthFailOp:Int, compareOp:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_rasterizer_discard_enable") private static function lime_vk_cmd_set_rasterizer_discard_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizerDiscardEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_bias_enable") private static function lime_vk_cmd_set_depth_bias_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthBiasEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_primitive_restart_enable") private static function lime_vk_cmd_set_primitive_restart_enable(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveRestartEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_viewport_with_count") private static function lime_vk_cmd_set_viewport_with_count(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, viewports:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_scissor_with_count") private static function lime_vk_cmd_set_scissor_with_count(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, scissors:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_tool_properties") private static function lime_vk_get_physical_device_tool_properties(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_vertex_buffers_2") private static function lime_vk_cmd_bind_vertex_buffers_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindings:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_private_data_slot") private static function lime_vk_create_private_data_slot(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, flags:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_private_data_slot") private static function lime_vk_destroy_private_data_slot(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, slotHigh:Int, slotLow:Int):Void {}
+
+	@:hlNative("lime", "hl_vk_set_private_data") private static function lime_vk_set_private_data(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, objectType:Int, objectHandleHigh:Int, objectHandleLow:Int, slotHigh:Int, slotLow:Int, dataHigh:Int, dataLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_private_data") private static function lime_vk_get_private_data(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, objectType:Int, objectHandleHigh:Int, objectHandleLow:Int, slotHigh:Int, slotLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_buffer_2") private static function lime_vk_cmd_copy_buffer_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceBufferHigh:Int, sourceBufferLow:Int, destinationBufferHigh:Int, destinationBufferLow:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_image_2") private static function lime_vk_cmd_copy_image_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_buffer_to_image_2") private static function lime_vk_cmd_copy_buffer_to_image_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceBufferHigh:Int, sourceBufferLow:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_image_to_buffer_2") private static function lime_vk_cmd_copy_image_to_buffer_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationBufferHigh:Int, destinationBufferLow:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_blit_image_2") private static function lime_vk_cmd_blit_image_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, filter:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_resolve_image_2") private static function lime_vk_cmd_resolve_image_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sourceImageHigh:Int, sourceImageLow:Int, sourceLayout:Int, destinationImageHigh:Int, destinationImageLow:Int, destinationLayout:Int, regions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_timestamp_2") private static function lime_vk_cmd_write_timestamp_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stageHigh:Int, stageLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_submit_2") private static function lime_vk_queue_submit_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, flags:Int, waitSemaphores:hl.NativeArray<Dynamic>, commandBuffers:hl.NativeArray<Dynamic>, signalSemaphores:hl.NativeArray<Dynamic>, fenceHigh:Int, fenceLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_event_2") private static function lime_vk_cmd_set_event_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, dependency:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_reset_event_2") private static function lime_vk_cmd_reset_event_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, eventHigh:Int, eventLow:Int, stageHigh:Int, stageLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_wait_events_2") private static function lime_vk_cmd_wait_events_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, events:hl.NativeArray<Dynamic>, dependency:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_buffer_memory_requirements") private static function lime_vk_get_device_buffer_memory_requirements(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_image_memory_requirements") private static function lime_vk_get_device_image_memory_requirements(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_image_sparse_memory_requirements") private static function lime_vk_get_device_image_sparse_memory_requirements(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, createInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:hlNative("lime", "hl_vk_acquire_drm_display_ext") private static function lime_vk_acquire_drm_display_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, drmFd:Int, displayHigh:Int, displayLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_acquire_next_image_2_khr") private static function lime_vk_acquire_next_image_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pAcquireInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_acquire_next_image_khr") private static function lime_vk_acquire_next_image_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, timeoutHigh:Int, timeoutLow:Int, semaphoreHigh:Int, semaphoreLow:Int, fenceHigh:Int, fenceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_acquire_profiling_lock_khr") private static function lime_vk_acquire_profiling_lock_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_bind_optical_flow_session_image_nv") private static function lime_vk_bind_optical_flow_session_image_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, sessionHigh:Int, sessionLow:Int, bindingPoint:Int, viewHigh:Int, viewLow:Int, layout:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_bind_video_session_memory_khr") private static function lime_vk_bind_video_session_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int, bindSessionMemoryInfoCountIn:Int, pBindSessionMemoryInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_conditional_rendering_2_ext") private static function lime_vk_cmd_begin_conditional_rendering_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pConditionalRenderingBegin:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_conditional_rendering_ext") private static function lime_vk_cmd_begin_conditional_rendering_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pConditionalRenderingBegin:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_custom_resolve_ext") private static function lime_vk_cmd_begin_custom_resolve_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBeginCustomResolveInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_debug_utils_label_ext") private static function lime_vk_cmd_begin_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLabelInfo:hl.NativeArray<Dynamic>, pLabelName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_gpa_session_amd") private static function lime_vk_cmd_begin_gpa_session_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_query_indexed_ext") private static function lime_vk_cmd_begin_query_indexed_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int, flags:Int, index:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_transform_feedback_2_ext") private static function lime_vk_cmd_begin_transform_feedback_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterRange:Int, counterRangeCountIn:Int, pCounterInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_transform_feedback_ext") private static function lime_vk_cmd_begin_transform_feedback_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterBuffer:Int, counterBufferCountIn:Int, pCounterBuffers:hl.NativeArray<Dynamic>, pCounterBufferOffsets:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext") private static function lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindDescriptorBufferEmbeddedSamplersInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext") private static function lime_vk_cmd_bind_descriptor_buffer_embedded_samplers_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, set:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_descriptor_buffers_ext") private static function lime_vk_cmd_bind_descriptor_buffers_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferCountIn:Int, pBindingInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_index_buffer_3_khr") private static function lime_vk_cmd_bind_index_buffer_3_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_pipeline_shader_group_nv") private static function lime_vk_cmd_bind_pipeline_shader_group_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, pipelineHigh:Int, pipelineLow:Int, groupIndex:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_resource_heap_ext") private static function lime_vk_cmd_bind_resource_heap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_sampler_heap_ext") private static function lime_vk_cmd_bind_sampler_heap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_shaders_ext") private static function lime_vk_cmd_bind_shaders_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stageCountIn:Int, pStages:hl.NativeArray<Dynamic>, pShaders:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_shading_rate_image_nv") private static function lime_vk_cmd_bind_shading_rate_image_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, imageViewHigh:Int, imageViewLow:Int, imageLayout:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_transform_feedback_buffers_2_ext") private static function lime_vk_cmd_bind_transform_feedback_buffers_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBindingInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_transform_feedback_buffers_ext") private static function lime_vk_cmd_bind_transform_feedback_buffers_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBuffers:hl.NativeArray<Dynamic>, pOffsets:hl.NativeArray<Dynamic>, pSizes:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_vertex_buffers_3_khr") private static function lime_vk_cmd_bind_vertex_buffers_3_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstBinding:Int, bindingCountIn:Int, pBindingInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_build_partitioned_acceleration_structures_nv") private static function lime_vk_cmd_build_partitioned_acceleration_structures_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBuildInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_control_video_coding_khr") private static function lime_vk_cmd_control_video_coding_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCodingControlInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_acceleration_structure_khr") private static function lime_vk_cmd_copy_acceleration_structure_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_acceleration_structure_nv") private static function lime_vk_cmd_copy_acceleration_structure_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, dstHigh:Int, dstLow:Int, srcHigh:Int, srcLow:Int, mode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_gpa_session_results_amd") private static function lime_vk_cmd_copy_gpa_session_results_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_indirect_khr") private static function lime_vk_cmd_copy_memory_indirect_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryIndirectInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_indirect_nv") private static function lime_vk_cmd_copy_memory_indirect_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, copyBufferAddressHigh:Int, copyBufferAddressLow:Int, copyCount:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_to_image_indirect_nv") private static function lime_vk_cmd_copy_memory_to_image_indirect_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, copyBufferAddressHigh:Int, copyBufferAddressLow:Int, copyCountIn:Int, stride:Int, dstImageHigh:Int, dstImageLow:Int, dstImageLayout:Int, pImageSubresources:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_micromap_ext") private static function lime_vk_cmd_copy_micromap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_query_pool_results_to_memory_khr") private static function lime_vk_cmd_copy_query_pool_results_to_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int, queryCountIn:Int, pDstRange:hl.NativeArray<Dynamic>, dstFlags:Int, queryResultFlags:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_debug_marker_begin_ext") private static function lime_vk_cmd_debug_marker_begin_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pMarkerInfo:hl.NativeArray<Dynamic>, pMarkerName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_debug_marker_end_ext") private static function lime_vk_cmd_debug_marker_end_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_debug_marker_insert_ext") private static function lime_vk_cmd_debug_marker_insert_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pMarkerInfo:hl.NativeArray<Dynamic>, pMarkerName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_decompress_memory_indirect_count_ext") private static function lime_vk_cmd_decompress_memory_indirect_count_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, decompressionMethod:Int, indirectCommandsAddressHigh:Int, indirectCommandsAddressLow:Int, indirectCommandsCountAddressHigh:Int, indirectCommandsCountAddressLow:Int, maxDecompressionCount:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_decompress_memory_indirect_count_nv") private static function lime_vk_cmd_decompress_memory_indirect_count_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, indirectCommandsAddressHigh:Int, indirectCommandsAddressLow:Int, indirectCommandsCountAddressHigh:Int, indirectCommandsCountAddressLow:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_decompress_memory_nv") private static function lime_vk_cmd_decompress_memory_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, decompressRegionCountIn:Int, pDecompressMemoryRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_dispatch_indirect_2_khr") private static function lime_vk_cmd_dispatch_indirect_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indexed_indirect_2_khr") private static function lime_vk_cmd_draw_indexed_indirect_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indexed_indirect_count_2_khr") private static function lime_vk_cmd_draw_indexed_indirect_count_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indirect_2_khr") private static function lime_vk_cmd_draw_indirect_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indirect_byte_count_2_ext") private static function lime_vk_cmd_draw_indirect_byte_count_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, instanceCountIn:Int, firstInstance:Int, pCounterInfo:hl.NativeArray<Dynamic>, counterOffset:Int, vertexStride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indirect_byte_count_ext") private static function lime_vk_cmd_draw_indirect_byte_count_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, instanceCount:Int, firstInstance:Int, counterBufferHigh:Int, counterBufferLow:Int, counterBufferOffsetHigh:Int, counterBufferOffsetLow:Int, counterOffset:Int, vertexStride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_indirect_count_2_khr") private static function lime_vk_cmd_draw_indirect_count_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_ext") private static function lime_vk_cmd_draw_mesh_tasks_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, groupCountX:Int, groupCountY:Int, groupCountZ:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_2_ext") private static function lime_vk_cmd_draw_mesh_tasks_indirect_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_count_2_ext") private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_ext") private static function lime_vk_cmd_draw_mesh_tasks_indirect_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, drawCount:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_nv") private static function lime_vk_cmd_draw_mesh_tasks_indirect_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, drawCount:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_nv") private static function lime_vk_cmd_draw_mesh_tasks_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, taskCount:Int, firstTask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_multi_ext") private static function lime_vk_cmd_draw_multi_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, drawCountIn:Int, pVertexInfo:hl.NativeArray<Dynamic>, instanceCount:Int, firstInstance:Int, stride:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_draw_multi_indexed_ext") private static function lime_vk_cmd_draw_multi_indexed_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, drawCountIn:Int, pIndexInfo:hl.NativeArray<Dynamic>, instanceCountIn:Int, firstInstance:Int, stride:Int, pVertexOffset:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_conditional_rendering_ext") private static function lime_vk_cmd_end_conditional_rendering_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_debug_utils_label_ext") private static function lime_vk_cmd_end_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_gpa_sample_amd") private static function lime_vk_cmd_end_gpa_sample_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int, sampleID:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_gpa_session_amd") private static function lime_vk_cmd_end_gpa_session_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_query_indexed_ext") private static function lime_vk_cmd_end_query_indexed_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, queryPoolHigh:Int, queryPoolLow:Int, query:Int, index:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_rendering_2_khr") private static function lime_vk_cmd_end_rendering_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRenderingEndInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_transform_feedback_2_ext") private static function lime_vk_cmd_end_transform_feedback_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterRange:Int, counterRangeCountIn:Int, pCounterInfos:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_transform_feedback_ext") private static function lime_vk_cmd_end_transform_feedback_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstCounterBuffer:Int, counterBufferCountIn:Int, pCounterBuffers:hl.NativeArray<Dynamic>, pCounterBufferOffsets:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_end_video_coding_khr") private static function lime_vk_cmd_end_video_coding_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pEndCodingInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_execute_generated_commands_ext") private static function lime_vk_cmd_execute_generated_commands_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, isPreprocessed:Int, pGeneratedCommandsInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_fill_memory_khr") private static function lime_vk_cmd_fill_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDstRange:hl.NativeArray<Dynamic>, dstFlags:Int, data:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_insert_debug_utils_label_ext") private static function lime_vk_cmd_insert_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLabelInfo:hl.NativeArray<Dynamic>, pLabelName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_preprocess_generated_commands_ext") private static function lime_vk_cmd_preprocess_generated_commands_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pGeneratedCommandsInfo:hl.NativeArray<Dynamic>, stateCommandBufferHigh:Int, stateCommandBufferLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_alpha_to_coverage_enable_ext") private static function lime_vk_cmd_set_alpha_to_coverage_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, alphaToCoverageEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_alpha_to_one_enable_ext") private static function lime_vk_cmd_set_alpha_to_one_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, alphaToOneEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_attachment_feedback_loop_enable_ext") private static function lime_vk_cmd_set_attachment_feedback_loop_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, aspectMask:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_color_blend_advanced_ext") private static function lime_vk_cmd_set_color_blend_advanced_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendAdvanced:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_color_blend_enable_ext") private static function lime_vk_cmd_set_color_blend_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendEnables:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_color_blend_equation_ext") private static function lime_vk_cmd_set_color_blend_equation_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorBlendEquations:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_color_write_enable_ext") private static function lime_vk_cmd_set_color_write_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, attachmentCountIn:Int, pColorWriteEnables:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_color_write_mask_ext") private static function lime_vk_cmd_set_color_write_mask_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstAttachment:Int, attachmentCountIn:Int, pColorWriteMasks:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_compute_occupancy_priority_nv") private static function lime_vk_cmd_set_compute_occupancy_priority_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pParameters:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_conservative_rasterization_mode_ext") private static function lime_vk_cmd_set_conservative_rasterization_mode_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, conservativeRasterizationMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_modulation_mode_nv") private static function lime_vk_cmd_set_coverage_modulation_mode_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_modulation_table_enable_nv") private static function lime_vk_cmd_set_coverage_modulation_table_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationTableEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_modulation_table_nv") private static function lime_vk_cmd_set_coverage_modulation_table_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageModulationTableCountIn:Int, pCoverageModulationTable:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_reduction_mode_nv") private static function lime_vk_cmd_set_coverage_reduction_mode_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageReductionMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_to_color_enable_nv") private static function lime_vk_cmd_set_coverage_to_color_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageToColorEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coverage_to_color_location_nv") private static function lime_vk_cmd_set_coverage_to_color_location_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, coverageToColorLocation:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_bias_2_ext") private static function lime_vk_cmd_set_depth_bias_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDepthBiasInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_clamp_enable_ext") private static function lime_vk_cmd_set_depth_clamp_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClampEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_clamp_range_ext") private static function lime_vk_cmd_set_depth_clamp_range_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClampMode:Int, pDepthClampRange:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_clip_enable_ext") private static function lime_vk_cmd_set_depth_clip_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, depthClipEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_depth_clip_negative_one_to_one_ext") private static function lime_vk_cmd_set_depth_clip_negative_one_to_one_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, negativeOneToOne:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_descriptor_buffer_offsets_ext") private static function lime_vk_cmd_set_descriptor_buffer_offsets_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, firstSet:Int, setCountIn:Int, pBufferIndices:hl.NativeArray<Dynamic>, pOffsets:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_discard_rectangle_ext") private static function lime_vk_cmd_set_discard_rectangle_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstDiscardRectangle:Int, discardRectangleCountIn:Int, pDiscardRectangles:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_discard_rectangle_enable_ext") private static function lime_vk_cmd_set_discard_rectangle_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, discardRectangleEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_discard_rectangle_mode_ext") private static function lime_vk_cmd_set_discard_rectangle_mode_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, discardRectangleMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_exclusive_scissor_enable_nv") private static function lime_vk_cmd_set_exclusive_scissor_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstExclusiveScissor:Int, exclusiveScissorCountIn:Int, pExclusiveScissorEnables:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_exclusive_scissor_nv") private static function lime_vk_cmd_set_exclusive_scissor_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstExclusiveScissor:Int, exclusiveScissorCountIn:Int, pExclusiveScissors:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_extra_primitive_overestimation_size_ext") private static function lime_vk_cmd_set_extra_primitive_overestimation_size_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, extraPrimitiveOverestimationSize:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_fragment_shading_rate_enum_nv") private static function lime_vk_cmd_set_fragment_shading_rate_enum_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, shadingRate:Int, combinerOps0:Int, combinerOps1:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_fragment_shading_rate_khr") private static function lime_vk_cmd_set_fragment_shading_rate_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pFragmentSize:hl.NativeArray<Dynamic>, combinerOps0:Int, combinerOps1:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_line_rasterization_mode_ext") private static function lime_vk_cmd_set_line_rasterization_mode_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, lineRasterizationMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_line_stipple_enable_ext") private static function lime_vk_cmd_set_line_stipple_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stippledLineEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_logic_op_ext") private static function lime_vk_cmd_set_logic_op_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, logicOp:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_logic_op_enable_ext") private static function lime_vk_cmd_set_logic_op_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, logicOpEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_patch_control_points_ext") private static function lime_vk_cmd_set_patch_control_points_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, patchControlPoints:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_polygon_mode_ext") private static function lime_vk_cmd_set_polygon_mode_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, polygonMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_primitive_restart_index_ext") private static function lime_vk_cmd_set_primitive_restart_index_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, primitiveRestartIndex:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_provoking_vertex_mode_ext") private static function lime_vk_cmd_set_provoking_vertex_mode_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, provokingVertexMode:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_rasterization_samples_ext") private static function lime_vk_cmd_set_rasterization_samples_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizationSamples:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_rasterization_stream_ext") private static function lime_vk_cmd_set_rasterization_stream_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, rasterizationStream:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_ray_tracing_pipeline_stack_size_khr") private static function lime_vk_cmd_set_ray_tracing_pipeline_stack_size_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineStackSize:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_representative_fragment_test_enable_nv") private static function lime_vk_cmd_set_representative_fragment_test_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, representativeFragmentTestEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_sample_locations_enable_ext") private static function lime_vk_cmd_set_sample_locations_enable_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sampleLocationsEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_sample_mask_ext") private static function lime_vk_cmd_set_sample_mask_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, samples:Int, pSampleMask:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_shading_rate_image_enable_nv") private static function lime_vk_cmd_set_shading_rate_image_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, shadingRateImageEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_tessellation_domain_origin_ext") private static function lime_vk_cmd_set_tessellation_domain_origin_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, domainOrigin:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_vertex_input_ext") private static function lime_vk_cmd_set_vertex_input_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, vertexBindingDescriptionCountIn:Int, pVertexBindingDescriptions:hl.NativeArray<Dynamic>, vertexAttributeDescriptionCountIn:Int, pVertexAttributeDescriptions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_viewport_swizzle_nv") private static function lime_vk_cmd_set_viewport_swizzle_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pViewportSwizzles:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_viewport_w_scaling_enable_nv") private static function lime_vk_cmd_set_viewport_w_scaling_enable_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, viewportWScalingEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_viewport_w_scaling_nv") private static function lime_vk_cmd_set_viewport_w_scaling_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pViewportWScalings:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_trace_rays_indirect_2_khr") private static function lime_vk_cmd_trace_rays_indirect_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, indirectDeviceAddressHigh:Int, indirectDeviceAddressLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_trace_rays_indirect_khr") private static function lime_vk_cmd_trace_rays_indirect_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRaygenShaderBindingTable:hl.NativeArray<Dynamic>, pMissShaderBindingTable:hl.NativeArray<Dynamic>, pHitShaderBindingTable:hl.NativeArray<Dynamic>, pCallableShaderBindingTable:hl.NativeArray<Dynamic>, indirectDeviceAddressHigh:Int, indirectDeviceAddressLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_trace_rays_khr") private static function lime_vk_cmd_trace_rays_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pRaygenShaderBindingTable:hl.NativeArray<Dynamic>, pMissShaderBindingTable:hl.NativeArray<Dynamic>, pHitShaderBindingTable:hl.NativeArray<Dynamic>, pCallableShaderBindingTable:hl.NativeArray<Dynamic>, width:Int, height:Int, depth:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_update_pipeline_indirect_buffer_nv") private static function lime_vk_cmd_update_pipeline_indirect_buffer_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, pipelineHigh:Int, pipelineLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_acceleration_structures_properties_khr") private static function lime_vk_cmd_write_acceleration_structures_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, accelerationStructureCountIn:Int, pAccelerationStructures:hl.NativeArray<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_acceleration_structures_properties_nv") private static function lime_vk_cmd_write_acceleration_structures_properties_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, accelerationStructureCountIn:Int, pAccelerationStructures:hl.NativeArray<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_buffer_marker_2_amd") private static function lime_vk_cmd_write_buffer_marker_2_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, stage:Int, dstBufferHigh:Int, dstBufferLow:Int, dstOffsetHigh:Int, dstOffsetLow:Int, marker:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_buffer_marker_amd") private static function lime_vk_cmd_write_buffer_marker_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineStage:Int, dstBufferHigh:Int, dstBufferLow:Int, dstOffsetHigh:Int, dstOffsetLow:Int, marker:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_marker_to_memory_amd") private static function lime_vk_cmd_write_marker_to_memory_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_write_micromaps_properties_ext") private static function lime_vk_cmd_write_micromaps_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, micromapCountIn:Int, pMicromaps:hl.NativeArray<Dynamic>, queryType:Int, queryPoolHigh:Int, queryPoolLow:Int, firstQuery:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_compile_deferred_nv") private static function lime_vk_compile_deferred_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineHigh:Int, pipelineLow:Int, shader:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_copy_acceleration_structure_khr") private static function lime_vk_copy_acceleration_structure_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, deferredOperationHigh:Int, deferredOperationLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_copy_micromap_ext") private static function lime_vk_copy_micromap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, deferredOperationHigh:Int, deferredOperationLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_acceleration_structure_2_khr") private static function lime_vk_create_acceleration_structure_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_acceleration_structure_khr") private static function lime_vk_create_acceleration_structure_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_cu_function_nvx") private static function lime_vk_create_cu_function_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pName:String):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_deferred_operation_khr") private static function lime_vk_create_deferred_operation_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_display_mode_khr") private static function lime_vk_create_display_mode_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_display_plane_surface_khr") private static function lime_vk_create_display_plane_surface_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_external_compute_queue_nv") private static function lime_vk_create_external_compute_queue_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_gpa_session_amd") private static function lime_vk_create_gpa_session_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_headless_surface_ext") private static function lime_vk_create_headless_surface_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_micromap_ext") private static function lime_vk_create_micromap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_optical_flow_session_nv") private static function lime_vk_create_optical_flow_session_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_video_session_parameters_khr") private static function lime_vk_create_video_session_parameters_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_debug_marker_set_object_name_ext") private static function lime_vk_debug_marker_set_object_name_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pNameInfo:hl.NativeArray<Dynamic>, pObjectName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_debug_report_message_ext") private static function lime_vk_debug_report_message_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, flags:Int, objectType:Int, objectHigh:Int, objectLow:Int, locationHigh:Int, locationLow:Int, messageCode:Int, pLayerPrefix:String, pMessage:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_deferred_operation_join_khr") private static function lime_vk_deferred_operation_join_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_acceleration_structure_khr") private static function lime_vk_destroy_acceleration_structure_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, accelerationStructureHigh:Int, accelerationStructureLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_acceleration_structure_nv") private static function lime_vk_destroy_acceleration_structure_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, accelerationStructureHigh:Int, accelerationStructureLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_cu_function_nvx") private static function lime_vk_destroy_cu_function_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, functionHigh:Int, functionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_cu_module_nvx") private static function lime_vk_destroy_cu_module_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, moduleHigh:Int, moduleLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_debug_report_callback_ext") private static function lime_vk_destroy_debug_report_callback_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, callbackHigh:Int, callbackLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_debug_utils_messenger_ext") private static function lime_vk_destroy_debug_utils_messenger_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, messengerHigh:Int, messengerLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_deferred_operation_khr") private static function lime_vk_destroy_deferred_operation_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_external_compute_queue_nv") private static function lime_vk_destroy_external_compute_queue_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, externalQueueHigh:Int, externalQueueLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_gpa_session_amd") private static function lime_vk_destroy_gpa_session_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_indirect_commands_layout_ext") private static function lime_vk_destroy_indirect_commands_layout_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectCommandsLayoutHigh:Int, indirectCommandsLayoutLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_indirect_commands_layout_nv") private static function lime_vk_destroy_indirect_commands_layout_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectCommandsLayoutHigh:Int, indirectCommandsLayoutLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_indirect_execution_set_ext") private static function lime_vk_destroy_indirect_execution_set_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_micromap_ext") private static function lime_vk_destroy_micromap_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, micromapHigh:Int, micromapLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_optical_flow_session_nv") private static function lime_vk_destroy_optical_flow_session_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, sessionHigh:Int, sessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_pipeline_binary_khr") private static function lime_vk_destroy_pipeline_binary_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineBinaryHigh:Int, pipelineBinaryLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_shader_ext") private static function lime_vk_destroy_shader_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderHigh:Int, shaderLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_surface_khr") private static function lime_vk_destroy_surface_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, surfaceHigh:Int, surfaceLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_swapchain_khr") private static function lime_vk_destroy_swapchain_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_validation_cache_ext") private static function lime_vk_destroy_validation_cache_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, validationCacheHigh:Int, validationCacheLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_video_session_khr") private static function lime_vk_destroy_video_session_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_destroy_video_session_parameters_khr") private static function lime_vk_destroy_video_session_parameters_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionParametersHigh:Int, videoSessionParametersLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_display_power_control_ext") private static function lime_vk_display_power_control_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, displayHigh:Int, displayLow:Int, pDisplayPowerInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_acceleration_structure_device_address_khr") private static function lime_vk_get_acceleration_structure_device_address_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_acceleration_structure_memory_requirements_nv") private static function lime_vk_get_acceleration_structure_memory_requirements_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_calibrated_timestamps_khr") private static function lime_vk_get_calibrated_timestamps_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, timestampCountIn:Int, pTimestampInfos:hl.NativeArray<Dynamic>, pTimestamps:hl.NativeArray<Dynamic>, pMaxDeviation:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_deferred_operation_max_concurrency_khr") private static function lime_vk_get_deferred_operation_max_concurrency_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_deferred_operation_result_khr") private static function lime_vk_get_deferred_operation_result_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, operationHigh:Int, operationLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_descriptor_set_layout_binding_offset_ext") private static function lime_vk_get_descriptor_set_layout_binding_offset_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, layoutHigh:Int, layoutLow:Int, binding:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_descriptor_set_layout_size_ext") private static function lime_vk_get_descriptor_set_layout_size_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, layoutHigh:Int, layoutLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_combined_image_sampler_index_nvx") private static function lime_vk_get_device_combined_image_sampler_index_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageViewIndexHigh:Int, imageViewIndexLow:Int, samplerIndexHigh:Int, samplerIndexLow:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_group_present_capabilities_khr") private static function lime_vk_get_device_group_present_capabilities_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_group_surface_present_modes_khr") private static function lime_vk_get_device_group_surface_present_modes_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_display_mode_properties_2_khr") private static function lime_vk_get_display_mode_properties_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_display_mode_properties_khr") private static function lime_vk_get_display_mode_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_display_plane_capabilities_2_khr") private static function lime_vk_get_display_plane_capabilities_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pDisplayPlaneInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_display_plane_capabilities_khr") private static function lime_vk_get_display_plane_capabilities_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, modeHigh:Int, modeLow:Int, planeIndex:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_display_plane_supported_displays_khr") private static function lime_vk_get_display_plane_supported_displays_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, planeIndex:Int, pDisplays:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_drm_display_ext") private static function lime_vk_get_drm_display_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, drmFd:Int, connectorId:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_fence_fd_khr") private static function lime_vk_get_fence_fd_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_generated_commands_memory_requirements_ext") private static function lime_vk_get_generated_commands_memory_requirements_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_generated_commands_memory_requirements_nv") private static function lime_vk_get_generated_commands_memory_requirements_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_gpa_device_clock_info_amd") private static function lime_vk_get_gpa_device_clock_info_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_gpa_session_status_amd") private static function lime_vk_get_gpa_session_status_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_drm_format_modifier_properties_ext") private static function lime_vk_get_image_drm_format_modifier_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_view_address_nvx") private static function lime_vk_get_image_view_address_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageViewHigh:Int, imageViewLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_view_handle_64_nvx") private static function lime_vk_get_image_view_handle_64_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_view_handle_nvx") private static function lime_vk_get_image_view_handle_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_memory_fd_khr") private static function lime_vk_get_memory_fd_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_memory_fd_properties_khr") private static function lime_vk_get_memory_fd_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, handleType:Int, fd:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_partitioned_acceleration_structures_build_sizes_nv") private static function lime_vk_get_partitioned_acceleration_structures_build_sizes_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_calibrateable_time_domains_khr") private static function lime_vk_get_physical_device_calibrateable_time_domains_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pTimeDomains:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv") private static function lime_vk_get_physical_device_cooperative_matrix_flexible_dimensions_properties_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_cooperative_matrix_properties_khr") private static function lime_vk_get_physical_device_cooperative_matrix_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_cooperative_matrix_properties_nv") private static function lime_vk_get_physical_device_cooperative_matrix_properties_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_cooperative_vector_properties_nv") private static function lime_vk_get_physical_device_cooperative_vector_properties_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_descriptor_size_ext") private static function lime_vk_get_physical_device_descriptor_size_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, descriptorType:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_display_plane_properties_2_khr") private static function lime_vk_get_physical_device_display_plane_properties_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_display_plane_properties_khr") private static function lime_vk_get_physical_device_display_plane_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_external_image_format_properties_nv") private static function lime_vk_get_physical_device_external_image_format_properties_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, format:Int, type:Int, tiling:Int, usage:Int, flags:Int, externalHandleType:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_fragment_shading_rates_khr") private static function lime_vk_get_physical_device_fragment_shading_rates_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pFragmentShadingRates:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_multisample_properties_ext") private static function lime_vk_get_physical_device_multisample_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, samples:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_optical_flow_image_formats_nv") private static function lime_vk_get_physical_device_optical_flow_image_formats_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pOpticalFlowImageFormatInfo:hl.NativeArray<Dynamic>, pImageFormatProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_present_rectangles_khr") private static function lime_vk_get_physical_device_present_rectangles_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pRects:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv") private static function lime_vk_get_physical_device_supported_framebuffer_mixed_samples_combinations_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pCombinations:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_capabilities_2_ext") private static function lime_vk_get_physical_device_surface_capabilities_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_capabilities_2_khr") private static function lime_vk_get_physical_device_surface_capabilities_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pSurfaceInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_capabilities_khr") private static function lime_vk_get_physical_device_surface_capabilities_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_formats_2_khr") private static function lime_vk_get_physical_device_surface_formats_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pSurfaceInfo:hl.NativeArray<Dynamic>, pSurfaceFormats:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_formats_khr") private static function lime_vk_get_physical_device_surface_formats_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pSurfaceFormats:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_present_modes_khr") private static function lime_vk_get_physical_device_surface_present_modes_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int, pPresentModes:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_surface_support_khr") private static function lime_vk_get_physical_device_surface_support_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, surfaceHigh:Int, surfaceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_video_format_properties_khr") private static function lime_vk_get_physical_device_video_format_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pVideoFormatInfo:hl.NativeArray<Dynamic>, pVideoFormatProperties:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_pipeline_indirect_device_address_nv") private static function lime_vk_get_pipeline_indirect_device_address_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_pipeline_key_khr") private static function lime_vk_get_pipeline_key_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pPipelineCreateInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_pipeline_properties_ext") private static function lime_vk_get_pipeline_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pPipelineInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_ray_tracing_shader_group_stack_size_khr") private static function lime_vk_get_ray_tracing_shader_group_stack_size_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pipelineHigh:Int, pipelineLow:Int, group:Int, groupShader:Int):Dynamic
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_semaphore_fd_khr") private static function lime_vk_get_semaphore_fd_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pGetFdInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_shader_module_identifier_ext") private static function lime_vk_get_shader_module_identifier_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderModuleHigh:Int, shaderModuleLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_sleep_status_legacy_nv") private static function lime_vk_get_sleep_status_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_swapchain_counter_ext") private static function lime_vk_get_swapchain_counter_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, counter:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_swapchain_images_khr") private static function lime_vk_get_swapchain_images_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSwapchainImages:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_swapchain_status_khr") private static function lime_vk_get_swapchain_status_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_swapchain_timing_properties_ext") private static function lime_vk_get_swapchain_timing_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_video_session_memory_requirements_khr") private static function lime_vk_get_video_session_memory_requirements_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionHigh:Int, videoSessionLow:Int, pMemoryRequirements:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_import_fence_fd_khr") private static function lime_vk_import_fence_fd_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pImportFenceFdInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_import_semaphore_fd_khr") private static function lime_vk_import_semaphore_fd_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pImportSemaphoreFdInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_latency_sleep_legacy_nv") private static function lime_vk_latency_sleep_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, signalSemaphoreHigh:Int, signalSemaphoreLow:Int, valueHigh:Int, valueLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_latency_sleep_nv") private static function lime_vk_latency_sleep_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSleepInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_merge_validation_caches_ext") private static function lime_vk_merge_validation_caches_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, dstCacheHigh:Int, dstCacheLow:Int, srcCacheCountIn:Int, pSrcCaches:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_begin_debug_utils_label_ext") private static function lime_vk_queue_begin_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pLabelInfo:hl.NativeArray<Dynamic>, pLabelName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_end_debug_utils_label_ext") private static function lime_vk_queue_end_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_insert_debug_utils_label_ext") private static function lime_vk_queue_insert_debug_utils_label_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pLabelInfo:hl.NativeArray<Dynamic>, pLabelName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_notify_out_of_band_legacy_nv") private static function lime_vk_queue_notify_out_of_band_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, queueType:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_queue_notify_out_of_band_nv") private static function lime_vk_queue_notify_out_of_band_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, queueHigh:Int, queueLow:Int, pQueueTypeInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_register_device_event_ext") private static function lime_vk_register_device_event_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pDeviceEventInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_register_display_event_ext") private static function lime_vk_register_display_event_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, displayHigh:Int, displayLow:Int, pDisplayEventInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_release_captured_pipeline_data_khr") private static function lime_vk_release_captured_pipeline_data_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_release_display_ext") private static function lime_vk_release_display_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, displayHigh:Int, displayLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_release_profiling_lock_khr") private static function lime_vk_release_profiling_lock_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_reset_gpa_session_amd") private static function lime_vk_reset_gpa_session_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_debug_utils_object_name_ext") private static function lime_vk_set_debug_utils_object_name_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pNameInfo:hl.NativeArray<Dynamic>, pObjectName:String):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_device_memory_priority_ext") private static function lime_vk_set_device_memory_priority_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, memoryHigh:Int, memoryLow:Int, priority:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_gpa_device_clock_mode_amd") private static function lime_vk_set_gpa_device_clock_mode_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_set_hdr_metadata_ext") private static function lime_vk_set_hdr_metadata_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainCountIn:Int, pSwapchains:hl.NativeArray<Dynamic>, pMetadata:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_latency_marker_legacy_nv") private static function lime_vk_set_latency_marker_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, frameIDHigh:Int, frameIDLow:Int, marker:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_latency_marker_nv") private static function lime_vk_set_latency_marker_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pLatencyMarkerInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_latency_sleep_mode_legacy_nv") private static function lime_vk_set_latency_sleep_mode_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, lowLatencyMode:Int, lowLatencyBoost:Int, minimumIntervalUs:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_latency_sleep_mode_nv") private static function lime_vk_set_latency_sleep_mode_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pSleepModeInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_local_dimming_amd") private static function lime_vk_set_local_dimming_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapChainHigh:Int, swapChainLow:Int, localDimmingEnable:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_swapchain_present_timing_queue_size_ext") private static function lime_vk_set_swapchain_present_timing_queue_size_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, size:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_shutdown_latency_device_legacy_nv") private static function lime_vk_shutdown_latency_device_legacy_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_unregister_custom_border_color_ext") private static function lime_vk_unregister_custom_border_color_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, index:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_update_indirect_execution_set_pipeline_ext") private static function lime_vk_update_indirect_execution_set_pipeline_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int, executionSetWriteCountIn:Int, pExecutionSetWrites:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_update_indirect_execution_set_shader_ext") private static function lime_vk_update_indirect_execution_set_shader_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, indirectExecutionSetHigh:Int, indirectExecutionSetLow:Int, executionSetWriteCountIn:Int, pExecutionSetWrites:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_update_video_session_parameters_khr") private static function lime_vk_update_video_session_parameters_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, videoSessionParametersHigh:Int, videoSessionParametersLow:Int, pUpdateInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_wait_for_present_2_khr") private static function lime_vk_wait_for_present_2_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, pPresentWait2Info:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_wait_for_present_khr") private static function lime_vk_wait_for_present_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainHigh:Int, swapchainLow:Int, presentIdHigh:Int, presentIdLow:Int, timeoutHigh:Int, timeoutLow:Int):Bool
+	{
+		return false;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:hlNative("lime", "hl_vk_cmd_push_constants_2") private static function lime_vk_cmd_push_constants_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushConstantsInfo:hl.NativeArray<Dynamic>, pValues:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_push_descriptor_set_with_template_2") private static function lime_vk_cmd_push_descriptor_set_with_template_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDescriptorSetWithTemplateInfo:hl.NativeArray<Dynamic>, pData:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_update_memory_khr") private static function lime_vk_cmd_update_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDstRange:hl.NativeArray<Dynamic>, dstFlags:Int, pData:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_validation_cache_ext") private static function lime_vk_create_validation_cache_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pInitialData:Bytes):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_debug_marker_set_object_tag_ext") private static function lime_vk_debug_marker_set_object_tag_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pTagInfo:hl.NativeArray<Dynamic>, pTag:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_set_debug_utils_object_tag_ext") private static function lime_vk_set_debug_utils_object_tag_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pTagInfo:hl.NativeArray<Dynamic>, pTag:Bytes):Bool
+	{
+		return false;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	@:hlNative("lime", "hl_vk_cmd_bind_descriptor_sets_2") private static function lime_vk_cmd_bind_descriptor_sets_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBindDescriptorSetsInfo:hl.NativeArray<Dynamic>, pDescriptorSets:hl.NativeArray<Dynamic>, pDynamicOffsets:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_push_descriptor_set") private static function lime_vk_cmd_push_descriptor_set(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pipelineBindPoint:Int, layoutHigh:Int, layoutLow:Int, set:Int, descriptorWriteCountIn:Int, pDescriptorWrites:hl.NativeArray<Dynamic>, pImageInfo:hl.NativeArray<Dynamic>, pBufferInfo:hl.NativeArray<Dynamic>, pTexelBufferView:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_push_descriptor_set_2") private static function lime_vk_cmd_push_descriptor_set_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDescriptorSetInfo:hl.NativeArray<Dynamic>, pDescriptorWrites:hl.NativeArray<Dynamic>, pDescriptorWrites_pImageInfo:hl.NativeArray<Dynamic>, pDescriptorWrites_pBufferInfo:hl.NativeArray<Dynamic>, pDescriptorWrites_pTexelBufferView:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_push_descriptor_set_with_template") private static function lime_vk_cmd_push_descriptor_set_with_template(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, descriptorUpdateTemplateHigh:Int, descriptorUpdateTemplateLow:Int, layoutHigh:Int, layoutLow:Int, set:Int, pData:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_rendering_attachment_locations") private static function lime_vk_cmd_set_rendering_attachment_locations(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pLocationInfo:hl.NativeArray<Dynamic>, pColorAttachmentLocations:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_rendering_input_attachment_indices") private static function lime_vk_cmd_set_rendering_input_attachment_indices(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pInputAttachmentIndexInfo:hl.NativeArray<Dynamic>, pColorAttachmentInputIndices:hl.NativeArray<Dynamic>, pDepthInputAttachmentIndex:hl.NativeArray<Dynamic>, pStencilInputAttachmentIndex:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_copy_image_to_image") private static function lime_vk_copy_image_to_image(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyImageToImageInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_copy_image_to_memory") private static function lime_vk_copy_image_to_memory(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyImageToMemoryInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>, pRegionsHostData:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_copy_memory_to_image") private static function lime_vk_copy_memory_to_image(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCopyMemoryToImageInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>, pRegionsHostData:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_image_subresource_layout") private static function lime_vk_get_device_image_subresource_layout(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pInfo:hl.NativeArray<Dynamic>, pCreateInfo:hl.NativeArray<Dynamic>, pCreateInfo_pQueueFamilyIndices:hl.NativeArray<Dynamic>, pSubresource:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_rendering_area_granularity") private static function lime_vk_get_rendering_area_granularity(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pRenderingAreaInfo:hl.NativeArray<Dynamic>, pColorAttachmentFormats:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_map_memory_2") private static function lime_vk_map_memory_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pMemoryMapInfo:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_anti_lag_update_amd") private static function lime_vk_anti_lag_update_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pData:hl.NativeArray<Dynamic>, pPresentationInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_bind_acceleration_structure_memory_nv") private static function lime_vk_bind_acceleration_structure_memory_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, bindInfoCountIn:Int, pBindInfos:hl.NativeArray<Dynamic>, pDeviceIndices:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_gpa_sample_amd") private static function lime_vk_cmd_begin_gpa_sample_amd(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, gpaSessionHigh:Int, gpaSessionLow:Int, pGpaSampleBeginInfo:hl.NativeArray<Dynamic>, pPerfCounters:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_begin_video_coding_khr") private static function lime_vk_cmd_begin_video_coding_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pBeginInfo:hl.NativeArray<Dynamic>, pReferenceSlots:hl.NativeArray<Dynamic>, pReferenceSlots_pPictureResource:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_image_to_memory_khr") private static function lime_vk_cmd_copy_image_to_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_khr") private static function lime_vk_cmd_copy_memory_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_to_image_indirect_khr") private static function lime_vk_cmd_copy_memory_to_image_indirect_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryToImageIndirectInfo:hl.NativeArray<Dynamic>, pImageSubresources:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_copy_memory_to_image_khr") private static function lime_vk_cmd_copy_memory_to_image_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCopyMemoryInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_decode_video_khr") private static function lime_vk_cmd_decode_video_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDecodeInfo:hl.NativeArray<Dynamic>, pSetupReferenceSlot:hl.NativeArray<Dynamic>, pSetupReferenceSlot_pPictureResource:hl.NativeArray<Dynamic>, pReferenceSlots:hl.NativeArray<Dynamic>, pReferenceSlots_pPictureResource:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_decompress_memory_ext") private static function lime_vk_cmd_decompress_memory_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pDecompressMemoryInfoEXT:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_encode_video_khr") private static function lime_vk_cmd_encode_video_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pEncodeInfo:hl.NativeArray<Dynamic>, pSetupReferenceSlot:hl.NativeArray<Dynamic>, pSetupReferenceSlot_pPictureResource:hl.NativeArray<Dynamic>, pReferenceSlots:hl.NativeArray<Dynamic>, pReferenceSlots_pPictureResource:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_execute_generated_commands_nv") private static function lime_vk_cmd_execute_generated_commands_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, isPreprocessed:Int, pGeneratedCommandsInfo:hl.NativeArray<Dynamic>, pStreams:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_optical_flow_execute_nv") private static function lime_vk_cmd_optical_flow_execute_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sessionHigh:Int, sessionLow:Int, pExecuteInfo:hl.NativeArray<Dynamic>, pRegions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_preprocess_generated_commands_nv") private static function lime_vk_cmd_preprocess_generated_commands_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pGeneratedCommandsInfo:hl.NativeArray<Dynamic>, pStreams:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_push_data_ext") private static function lime_vk_cmd_push_data_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pPushDataInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_checkpoint_nv") private static function lime_vk_cmd_set_checkpoint_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pCheckpointMarker:Bytes):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_coarse_sample_order_nv") private static function lime_vk_cmd_set_coarse_sample_order_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, sampleOrderType:Int, customSampleOrderCountIn:Int, pCustomSampleOrders:hl.NativeArray<Dynamic>, pSampleLocations:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_descriptor_buffer_offsets_2_ext") private static function lime_vk_cmd_set_descriptor_buffer_offsets_2_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pSetDescriptorBufferOffsetsInfo:hl.NativeArray<Dynamic>, pBufferIndices:hl.NativeArray<Dynamic>, pOffsets:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_sample_locations_ext") private static function lime_vk_cmd_set_sample_locations_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, pSampleLocationsInfo:hl.NativeArray<Dynamic>, pSampleLocations:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_viewport_shading_rate_palette_nv") private static function lime_vk_cmd_set_viewport_shading_rate_palette_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, firstViewport:Int, viewportCountIn:Int, pShadingRatePalettes:hl.NativeArray<Dynamic>, pShadingRatePaletteEntries:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_create_cu_module_nvx") private static function lime_vk_create_cu_module_nvx(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pData:Bytes):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_indirect_commands_layout_nv") private static function lime_vk_create_indirect_commands_layout_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pTokens:hl.NativeArray<Dynamic>, pTokens_pIndexTypes:hl.NativeArray<Dynamic>, pTokens_pIndexTypeValues:hl.NativeArray<Dynamic>, pStreamStrides:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_shared_swapchains_khr") private static function lime_vk_create_shared_swapchains_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, swapchainCountIn:Int, pCreateInfos:hl.NativeArray<Dynamic>, pQueueFamilyIndices:hl.NativeArray<Dynamic>, pSwapchains:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_create_swapchain_khr") private static function lime_vk_create_swapchain_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pQueueFamilyIndices:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_acceleration_structure_compatibility_khr") private static function lime_vk_get_device_acceleration_structure_compatibility_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pVersionInfo:hl.NativeArray<Dynamic>, pVersionData:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_device_micromap_compatibility_ext") private static function lime_vk_get_device_micromap_compatibility_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pVersionInfo:hl.NativeArray<Dynamic>, pVersionData:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_memory_host_pointer_properties_ext") private static function lime_vk_get_memory_host_pointer_properties_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, handleType:Int, pHostPointer:Bytes):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_queue_family_performance_query_passes_khr") private static function lime_vk_get_physical_device_queue_family_performance_query_passes_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pPerformanceQueryCreateInfo:hl.NativeArray<Dynamic>, pCounterIndices:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_physical_device_video_encode_quality_level_properties_khr") private static function lime_vk_get_physical_device_video_encode_quality_level_properties_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, pQualityLevelInfo:hl.NativeArray<Dynamic>, pVideoProfile:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_get_shader_module_create_info_identifier_ext") private static function lime_vk_get_shader_module_create_info_identifier_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pCreateInfo:hl.NativeArray<Dynamic>, pCode:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_release_swapchain_images_khr") private static function lime_vk_release_swapchain_images_khr(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pReleaseInfo:hl.NativeArray<Dynamic>, pImageIndices:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_bind_index_buffer_2") private static function lime_vk_cmd_bind_index_buffer_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, bufferHigh:Int, bufferLow:Int, offsetHigh:Int, offsetLow:Int, sizeHigh:Int, sizeLow:Int, indexType:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_cmd_set_line_stipple") private static function lime_vk_cmd_set_line_stipple(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, lineStippleFactor:Int, lineStipplePattern:Int):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_get_image_subresource_layout_2") private static function lime_vk_get_image_subresource_layout_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, imageHigh:Int, imageLow:Int, pSubresource:hl.NativeArray<Dynamic>):hl.NativeArray<Dynamic>
+	{
+		return null;
+	}
+
+	@:hlNative("lime", "hl_vk_transition_image_layout") private static function lime_vk_transition_image_layout(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, transitionCountIn:Int, pTransitions:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
+	@:hlNative("lime", "hl_vk_unmap_memory_2") private static function lime_vk_unmap_memory_2(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, pMemoryUnmapInfo:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+
 	#end
 
 	@:hlNative("lime", "hl_vk_get_last_error") private static function lime_vk_get_last_error():hl.Bytes
@@ -2731,6 +16086,11 @@ class NativeCFFI
 	@:hlNative("lime", "hl_vulkan_renderer_resize") private static function lime_vulkan_renderer_resize(handle:CFFIPointer):Bool
 	{
 		return false;
+
+	@:hlNative("lime", "hl_glslang_compile") private static function lime_glslang_compile(stage:Int, source:String):Array<Int>
+	{
+		return null;
+	}
 	}
 
 	@:hlNative("lime", "hl_window_get_width") private static function lime_window_get_width(handle:CFFIPointer):Int
@@ -2823,6 +16183,31 @@ class NativeCFFI
 	}
 
 	@:hlNative("lime", "hl_window_set_opacity") private static function lime_window_set_opacity(handle:CFFIPointer, value:Float):Void {}
+
+	@:hlNative("lime", "hl_window_set_progress_state") private static function lime_window_set_progress_state(handle:CFFIPointer, state:Int):Void {}
+
+	@:hlNative("lime", "hl_window_set_progress_value") private static function lime_window_set_progress_value(handle:CFFIPointer, value:Float):Void {}
+
+	@:hlNative("lime", "hl_window_set_mouse_rect") private static function lime_window_set_mouse_rect(handle:CFFIPointer, rect:Rectangle):Void {}
+
+	@:hlNative("lime", "hl_window_set_cursor_image") private static function lime_window_set_cursor_image(handle:CFFIPointer, buffer:ImageBuffer):Void {}
+
+	@:hlNative("lime", "hl_window_set_blur") private static function lime_window_set_blur(handle:CFFIPointer, mode:Int, tint:Int):Void {}
+
+	@:hlNative("lime", "hl_window_get_progress_state") private static function lime_window_get_progress_state(handle:CFFIPointer):Int
+	{
+		return 0;
+	}
+
+	@:hlNative("lime", "hl_window_get_progress_value") private static function lime_window_get_progress_value(handle:CFFIPointer):Float
+	{
+		return 0.0;
+	}
+
+	@:hlNative("lime", "hl_window_get_safe_area") private static function lime_window_get_safe_area(handle:CFFIPointer):Dynamic
+	{
+		return null;
+	}
 
 	@:hlNative("lime", "hl_window_event_manager_register") private static function lime_window_event_manager_register(callback:Void->Void,
 		eventObject:WindowEventInfo):Void {}

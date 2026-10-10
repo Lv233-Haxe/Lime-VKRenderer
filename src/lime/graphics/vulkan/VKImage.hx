@@ -94,6 +94,12 @@ class VKImage
 		return false;
 	}
 
+	@:allow(lime.graphics.vulkan.VKDevice)
+	private function __setMemory(memory:VKDeviceMemory):Void
+	{
+		this.memory = memory;
+	}
+
 	public function createView(format:Int = 0, aspectMask:Int = VK.IMAGE_ASPECT_COLOR_BIT, viewType:Int = VK.IMAGE_VIEW_TYPE_2D, baseMipLevel:Int = 0,
 			levelCount:Int = 1, baseArrayLayer:Int = 0, layerCount:Int = 1):VKImageView
 	{
@@ -154,6 +160,93 @@ class VKImage
 		#end
 
 		return null;
+	}
+
+	public function getSubresourceLayout(aspectMask:Int = VK.IMAGE_ASPECT_COLOR_BIT, mipLevel:Int = 0, arrayLayer:Int = 0):Dynamic
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			var data:Dynamic = NativeCFFI.lime_vk_get_image_subresource_layout(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, aspectMask, mipLevel, arrayLayer);
+			if (data == null)
+			{
+				return null;
+			}
+			return {
+				offset: VK.__makeHandle(data.offset),
+				size: VK.__makeHandle(data.size),
+				rowPitch: VK.__makeHandle(data.rowPitch),
+				arrayPitch: VK.__makeHandle(data.arrayPitch),
+				depthPitch: VK.__makeHandle(data.depthPitch)
+			};
+		}
+		#end
+
+		return null;
+	}
+
+	/**
+		Returns the sparse memory requirements for this image, with one entry per
+		image aspect. Only meaningful for images created with a sparse usage flag.
+	**/
+	/**
+		Queries memory requirements through the Vulkan 1.1 path, which also reports
+		the dedicated-allocation hints (important for large textures).
+	**/
+	public function getMemoryRequirements2():VKMemoryRequirements2
+	{
+		return (device != null) ? device.getImageMemoryRequirements2(this) : null;
+	}
+
+	public function getSparseMemoryRequirements():Array<VKSparseImageMemoryRequirements>
+	{
+		var requirements = new Array<VKSparseImageMemoryRequirements>();
+
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			var result:Dynamic = NativeCFFI.lime_vk_get_image_sparse_memory_requirements(device.instance.context.__windowHandle,
+				device.instance.handle.high, device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low);
+			if (result != null)
+			{
+				var length:Int = untyped result.length;
+				for (i in 0...length)
+				{
+					requirements.push(VKSparseImageMemoryRequirements.fromDynamic(untyped result[i]));
+				}
+			}
+		}
+		#end
+
+		return requirements;
+	}
+
+	/**
+		Vulkan 1.1 form of `getSparseMemoryRequirements()`.
+	**/
+	public function getSparseMemoryRequirements2():Array<VKSparseImageMemoryRequirements>
+	{
+		var requirements = new Array<VKSparseImageMemoryRequirements>();
+
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			var result:Dynamic = NativeCFFI.lime_vk_get_image_sparse_memory_requirements2(device.instance.context.__windowHandle,
+				device.instance.handle.high, device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low);
+
+			if (result != null)
+			{
+				var length:Int = untyped result.length;
+				for (i in 0...length)
+				{
+					requirements.push(VKSparseImageMemoryRequirements.fromDynamic(untyped result[i]));
+				}
+			}
+		}
+		#end
+
+		return requirements;
 	}
 
 	public inline function isValid():Bool

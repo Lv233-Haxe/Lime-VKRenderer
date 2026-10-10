@@ -644,17 +644,6 @@ class NativeApplication
 					window.onMove.dispatch(windowEventInfo.x, windowEventInfo.y);
 
 				case WINDOW_RESIZE:
-					#if !lime_disable_window_scale_change
-					#if (lime_cffi && !macro)
-					// SDL2 reports scale changes as window resizes
-					var newScale = NativeCFFI.lime_window_get_scale(window.__backend.handle);
-					if (window.__scale != newScale)
-					{
-						window.__scale = newScale;
-						window.onDisplayScaleChange.dispatch();
-					}
-					#end
-					#end
 					window.__width = windowEventInfo.width;
 					window.__height = windowEventInfo.height;
 					window.onResize.dispatch(windowEventInfo.width, windowEventInfo.height);
@@ -668,6 +657,8 @@ class NativeApplication
 					window.onShow.dispatch();
 				case WINDOW_HIDE:
 					window.onHide.dispatch();
+				case WINDOW_OCCLUDE:
+					window.onOccluded.dispatch();
 			}
 		}
 	}
@@ -1082,6 +1073,7 @@ class NativeApplication
 	var WINDOW_RESTORE = 12;
 	var WINDOW_SHOW = 13;
 	var WINDOW_HIDE = 14;
+	var WINDOW_OCCLUDE = 15;
 }
 
 @:keep /*private*/ class OrientationEventInfo

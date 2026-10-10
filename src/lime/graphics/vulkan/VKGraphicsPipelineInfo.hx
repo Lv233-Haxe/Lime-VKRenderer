@@ -43,6 +43,15 @@ class VKGraphicsPipelineInfo
 	public var vertexBindings:Array<VKVertexBinding>;
 	public var blend:Bool = false;
 
+	/**
+		Required subgroup size for the vertex / fragment shader stage
+		(`VkPipelineShaderStageRequiredSubgroupSizeCreateInfo`), or `0` to not
+		attach one. Requires the `subgroupSizeControl` feature and a size inside
+		`minSubgroupSize..maxSubgroupSize` of the stage's bitmask.
+	**/
+	public var vertexRequiredSubgroupSize:Int = 0;
+	public var fragmentRequiredSubgroupSize:Int = 0;
+
 	public function new()
 	{
 		vertexAttributes = [];
@@ -115,6 +124,9 @@ class VKGraphicsPipelineInfo
 			result.push(attribute.format);
 			result.push(attribute.offset);
 		}
+
+		result.push(vertexRequiredSubgroupSize);
+		result.push(fragmentRequiredSubgroupSize);
 
 		return result;
 	}

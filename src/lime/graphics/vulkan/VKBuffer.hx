@@ -73,6 +73,23 @@ class VKBuffer
 		return false;
 	}
 
+	/**
+		Returns this buffer's device address (Vulkan 1.2 buffer device address).
+
+		The buffer must be created with `VK.BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT`
+		and the device must expose the `bufferDeviceAddress` feature.
+	**/
+	public function getDeviceAddress():Int64
+	{
+		return (device != null) ? device.getBufferDeviceAddress(this) : Int64.ofInt(0);
+	}
+
+	@:allow(lime.graphics.vulkan.VKDevice)
+	private function __setMemory(memory:VKDeviceMemory):Void
+	{
+		this.memory = memory;
+	}
+
 	public function dispose(destroyMemory:Bool = false):Void
 	{
 		#if (!macro && lime_cffi && lime_vulkan)
@@ -89,6 +106,38 @@ class VKBuffer
 			memory.dispose();
 			memory = null;
 		}
+	}
+
+	/**
+		Creates a buffer view exposing all or part of this buffer as a texel buffer.
+
+		The buffer must have been created with `VK.BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT`
+		or `VK.BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT`. Pass `-1` for `range` to cover
+		the remainder of the buffer.
+	**/
+	public function createView(format:Int, offset:Int = 0, range:Int = -1):VKBufferView
+	{
+		var viewRange = range;
+		if (viewRange < 0)
+		{
+			var remaining = Int64.sub(size, Int64.ofInt(offset));
+			viewRange = (remaining.high == 0) ? remaining.low : -1;
+		}
+
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			var data:Dynamic = NativeCFFI.lime_vk_create_buffer_view(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, format, offset, viewRange);
+			var bufferViewHandle = VK.__makeHandle(data);
+			if (!VK.__isZero(bufferViewHandle))
+			{
+				return new VKBufferView(this, bufferViewHandle, format, offset, viewRange);
+			}
+		}
+		#end
+
+		return null;
 	}
 
 	public inline function get():Int64
@@ -108,6 +157,15 @@ class VKBuffer
 		#end
 
 		return null;
+	}
+
+	/**
+		Queries memory requirements through the Vulkan 1.1 path, which also reports
+		the dedicated-allocation hints.
+	**/
+	public function getMemoryRequirements2():VKMemoryRequirements2
+	{
+		return (device != null) ? device.getBufferMemoryRequirements2(this) : null;
 	}
 
 	public inline function isValid():Bool

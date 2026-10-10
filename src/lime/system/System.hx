@@ -104,11 +104,13 @@ class System
 	public static var platformLabel(get, never):String;
 	public static var platformName(get, never):String;
 	public static var platformVersion(get, never):String;
+	public static var theme(get, never):SystemTheme;
 
 	/**
 		The path to the user's home directory.
 	**/
 	public static var userDirectory(get, never):String;
+	public static var isTablet(get, never):Bool;
 
 	@:noCompletion private static var __applicationDirectory:String;
 	@:noCompletion private static var __applicationEntryPoint:Map<String, Function>;
@@ -123,6 +125,7 @@ class System
 	@:noCompletion private static var __platformLabel:String;
 	@:noCompletion private static var __platformName:String;
 	@:noCompletion private static var __platformVersion:String;
+	@:noCompletion private static var __isTablet:Null<Bool>;
 	@:noCompletion private static var __userDirectory:String;
 
 	#if (js && html5)
@@ -262,6 +265,8 @@ class System
 				- result[3]);
 			#else
 			display.safeArea = new Rectangle(displayInfo.safeArea.x, displayInfo.safeArea.y, displayInfo.safeArea.width, displayInfo.safeArea.height);
+			display.usableBounds = new Rectangle(displayInfo.usableBounds.x, displayInfo.usableBounds.y, displayInfo.usableBounds.width,
+				displayInfo.usableBounds.height);
 			#end
 
 			#if ios
@@ -935,6 +940,36 @@ class System
 		}
 
 		return __platformVersion;
+	}
+
+	/**
+		The current system UI theme (light / dark), backed by SDL_GetSystemTheme
+		(SDL 3.2+). Returns `SystemTheme.UNKNOWN` when the platform can't tell.
+	**/
+	private static function get_theme():SystemTheme
+	{
+		#if (lime_cffi && !macro && !html5)
+		return cast NativeCFFI.lime_system_get_theme();
+		#else
+		return UNKNOWN;
+		#end
+	}
+
+	/**
+		Whether the current device is a tablet, backed by SDL_IsTablet (SDL 3.2+).
+	**/
+	private static function get_isTablet():Bool
+	{
+		if (__isTablet == null)
+		{
+			#if (lime_cffi && !macro && !html5)
+			__isTablet = NativeCFFI.lime_system_is_tablet();
+			#else
+			__isTablet = false;
+			#end
+		}
+
+		return __isTablet;
 	}
 
 	private static function get_userDirectory():String

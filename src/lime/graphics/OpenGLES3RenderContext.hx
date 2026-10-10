@@ -4102,7 +4102,7 @@ public inline function getInternalformati(target:Int, internalformat:Int, pname:
 
 public inline function getInternalformativ(target:Int, internalformat:Int, pname:Int, bufSize, params:DataPointer):Void
 {
-	return this.getInternalformativ(target, internalformat, pname, bufSize, params);
+	this.getInternalformativ(target, internalformat, pname, bufSize, params);
 }
 
 public inline function getProgramBinary(program:GLProgram, binaryFormat:Int):Bytes
@@ -4272,7 +4272,7 @@ public inline function getUniformui(program:GLProgram, location:GLUniformLocatio
 
 public inline function getUniformuiv(program:GLProgram, location:GLUniformLocation, params:DataPointer):Void
 {
-	return this.getUniformuiv(program, location, params);
+	this.getUniformuiv(program, location, params);
 }
 
 public inline function getUniformBlockIndex(program:GLProgram, uniformBlockName:String):Int
@@ -4312,7 +4312,7 @@ public inline function getVertexAttribIi(index:Int, pname:Int):Int
 
 public inline function getVertexAttribIiv(index:Int, pname:Int, params:DataPointer):Void
 {
-	return this.getVertexAttribIiv(index, pname, params);
+	this.getVertexAttribIiv(index, pname, params);
 }
 
 public inline function getVertexAttribIui(index:Int, pname:Int):Int
@@ -4322,7 +4322,7 @@ public inline function getVertexAttribIui(index:Int, pname:Int):Int
 
 public inline function getVertexAttribIuiv(index:Int, pname:Int, params:DataPointer):Void
 {
-	return this.getVertexAttribIuiv(index, pname, params);
+	this.getVertexAttribIuiv(index, pname, params);
 }
 
 public inline function getVertexAttribiv(index:Int, pname:Int, params:DataPointer):Void

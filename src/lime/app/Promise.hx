@@ -49,9 +49,6 @@ import lime.system.WorkOutput;
 @:noDebug
 #end
 @:allow(lime.app.Future)
-#if (!hl && !js && !macro)
-@:generic
-#end
 class Promise<T>
 {
 	/**

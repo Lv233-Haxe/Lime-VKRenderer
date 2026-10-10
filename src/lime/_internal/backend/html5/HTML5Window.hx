@@ -32,6 +32,8 @@ import lime.ui.Gamepad;
 import lime.ui.Joystick;
 import lime.ui.MouseCursor;
 import lime.ui.MouseWheelMode;
+import lime.ui.WindowBlurMode;
+import lime.ui.WindowProgressState;
 import lime.ui.Touch;
 import lime.ui.Window;
 
@@ -59,7 +61,6 @@ class HTML5Window
 
 	private var cacheElementHeight:Float;
 	private var cacheElementWidth:Float;
-	private var cacheElementScale:Float;
 	private var cacheMouseX:Float;
 	private var cacheMouseY:Float;
 	private var cursor:MouseCursor;
@@ -71,9 +72,6 @@ class HTML5Window
 	private var requestedFullscreen:Bool;
 	private var resizeElement:Bool;
 	private var scale = 1.0;
-	#if !lime_disable_window_scale_change
-	private var devicePixelRatioMediaQuery:js.html.MediaQueryList;
-	#end
 	private var setHeight:Int;
 	private var setWidth:Int;
 	private var textInputEnabled:Bool;
@@ -115,10 +113,6 @@ class HTML5Window
 		}
 
 		parent.__scale = scale;
-
-		#if !lime_disable_window_scale_change
-		watchDevicePixelRatio();
-		#end
 
 		setWidth = Reflect.hasField(attributes, "width") ? attributes.width : 0;
 		setHeight = Reflect.hasField(attributes, "height") ? attributes.height : 0;
@@ -179,7 +173,6 @@ class HTML5Window
 
 			cacheElementWidth = parent.__width;
 			cacheElementHeight = parent.__height;
-			cacheElementScale = scale;
 
 			resizeElement = true;
 		}
@@ -1233,6 +1226,63 @@ class HTML5Window
 
 	public function setOpacity(value:Float):Void {}
 
+	public function getProgressState():WindowProgressState
+	{
+		return NONE;
+	}
+
+	public function getProgressValue():Float
+	{
+		return 0;
+	}
+
+	public function getSafeArea():Rectangle
+	{
+		return new Rectangle(0, 0, parent.__width, parent.__height);
+	}
+
+	public function setProgressState(value:WindowProgressState):WindowProgressState
+	{
+		return value;
+	}
+
+	public function setProgressValue(value:Float):Float
+	{
+		return value;
+	}
+
+	public function getMouseRect():Null<Rectangle>
+	{
+		return null;
+	}
+
+	public function setMouseRect(value:Null<Rectangle>):Null<Rectangle>
+	{
+		return null;
+	}
+
+	public function getBlurMode():WindowBlurMode
+	{
+		return NONE;
+	}
+
+	public function setBlurMode(value:WindowBlurMode):WindowBlurMode
+	{
+		return value;
+	}
+
+	public function getBlurTint():Int
+	{
+		return 0;
+	}
+
+	public function setBlurTint(value:Int):Int
+	{
+		return value;
+	}
+
+	public function setCursorImage(image:Image):Void {}
+
 	public function setResizable(value:Bool):Bool
 	{
 		return value;
@@ -1359,35 +1409,6 @@ class HTML5Window
 		return value;
 	}
 
-	#if !lime_disable_window_scale_change
-	private function watchDevicePixelRatio(?e:Dynamic):Void
-	{
-		scale = Browser.window.devicePixelRatio;
-		if (parent.__scale != scale)
-		{
-			parent.__scale = scale;
-			parent.onDisplayScaleChange.dispatch();
-			updateSize();
-		}
-		if (devicePixelRatioMediaQuery != null)
-		{
-			#if haxe4
-			devicePixelRatioMediaQuery.removeEventListener("change", watchDevicePixelRatio);
-			#else
-			devicePixelRatioMediaQuery.removeListener(watchDevicePixelRatio);
-			#end
-			devicePixelRatioMediaQuery = null;
-		}
-		var mediaQueryString = '(resolution: ${scale}dppx)';
-		devicePixelRatioMediaQuery = Browser.window.matchMedia(mediaQueryString);
-		#if haxe4
-		devicePixelRatioMediaQuery.addEventListener("change", watchDevicePixelRatio);
-		#else
-		devicePixelRatioMediaQuery.addListener(watchDevicePixelRatio);
-		#end
-	}
-	#end
-
 	private function updateSize():Void
 	{
 		if (!parent.__resizable) return;
@@ -1406,12 +1427,10 @@ class HTML5Window
 			elementHeight = Browser.window.innerHeight;
 		}
 
-		var scaleChanged = scale != cacheElementScale;
-		if (elementWidth != cacheElementWidth || elementHeight != cacheElementHeight || scaleChanged)
+		if (elementWidth != cacheElementWidth || elementHeight != cacheElementHeight)
 		{
 			cacheElementWidth = elementWidth;
 			cacheElementHeight = elementHeight;
-			cacheElementScale = scale;
 
 			var stretch = resizeElement || (setWidth == 0 && setHeight == 0);
 
@@ -1419,7 +1438,7 @@ class HTML5Window
 			{
 				if (stretch)
 				{
-					if (parent.__width != elementWidth || parent.__height != elementHeight || scaleChanged)
+					if (parent.__width != elementWidth || parent.__height != elementHeight)
 					{
 						parent.__width = Std.int(elementWidth);
 						parent.__height = Std.int(elementHeight);

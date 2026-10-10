@@ -41,6 +41,26 @@ class VKRenderPass
 		#end
 	}
 
+	/**
+		Returns the render area granularity for this render pass.
+
+		A render area that does not align to this granularity is still valid, but may
+		be slower on some implementations.
+	**/
+	public function getRenderAreaGranularity():VKExtent2D
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			var data:Dynamic = NativeCFFI.lime_vk_get_render_area_granularity(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low);
+			return VKExtent2D.fromDynamic(data);
+		}
+		#end
+
+		return null;
+	}
+
 	public inline function get():Int64
 	{
 		return handle;

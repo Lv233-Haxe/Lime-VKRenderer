@@ -33,3 +33,9 @@ node_modules
 !templates/**/node_modules
 .vscode/
 tests/**/bin/
+
+# 本仓库为纯 Haxe 层发布，原生工程与本地环境不入库（2026-10-10 重新添加）
+/project/
+/.haxelib/
+/.workbuddy/
+/.gitmodules

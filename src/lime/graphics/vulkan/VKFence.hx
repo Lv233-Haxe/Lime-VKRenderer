@@ -44,6 +44,19 @@ class VKFence
 		return !VK.__isZero(handle);
 	}
 
+	public function getStatus():Int
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_get_fence_status(device.instance.context.__windowHandle, device.instance.handle.high, device.instance.handle.low,
+				device.handle.high, device.handle.low, handle.high, handle.low);
+		}
+		#end
+
+		return VK.ERROR_INITIALIZATION_FAILED;
+	}
+
 	public function reset():Bool
 	{
 		#if (!macro && lime_cffi && lime_vulkan)
