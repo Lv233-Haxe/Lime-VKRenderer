@@ -915,7 +915,13 @@ class NativeCFFI
 
 	@:cffi private static function lime_vk_get_physical_device_surface_present_modes(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, surfaceHigh:Int, surfaceLow:Int):Dynamic;
 
-	@:cffi private static function lime_vk_create_device_with_features(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:Array<Dynamic>, features:Array<Dynamic>):Dynamic;
+	@:cffi private static function lime_vk_create_device_with_features(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:Array<Dynamic>, features:Array<Dynamic>, extFeatureSTypes:Array<Dynamic>, extFeatureWords:Array<Dynamic>):Dynamic;
+	@:cffi private static function lime_vk_create_shaders_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, infos:Array<Dynamic>, codes:Array<Dynamic>, names:Array<Dynamic>, setLayouts:Array<Dynamic>, pushRanges:Array<Dynamic>):Dynamic;
+	@:cffi private static function lime_vk_get_shader_binary_data_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderHigh:Int, shaderLow:Int):Dynamic;
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_ext(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, packed:Array<Dynamic>):Bool;
+	@:cffi private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, packed:Array<Dynamic>):Bool;
+	@:cffi private static function lime_vk_cmd_trace_rays_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, packed:Array<Dynamic>):Bool;
+	@:cffi private static function lime_vk_cmd_build_acceleration_structure_nv(handle:Dynamic, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, info:Array<Dynamic>, instanceBufferHigh:Int, instanceBufferLow:Int, instanceOffsetHigh:Int, instanceOffsetLow:Int, dstHigh:Int, dstLow:Int, srcHigh:Int, srcLow:Int):Bool;
 
 	@:cffi private static function lime_vk_allocate_memory_ex(handle:Dynamic, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, deviceHigh:Int, deviceLow:Int, sizeHigh:Int, sizeLow:Int, memoryTypeBits:Int, properties:Int, allocateFlags:Int):Dynamic;
 
@@ -4350,8 +4356,20 @@ class NativeCFFI
 	private static var lime_vk_get_physical_device_surface_present_modes = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_vk_get_physical_device_surface_present_modes", "oiiiiiio", false));
 
-	private static var lime_vk_create_device_with_features = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
-		"lime_vk_create_device_with_features", "oiiiiiooo", false));
+	private static var lime_vk_create_device_with_features = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_device_with_features", "oiiiiiooooo", false));
+	private static var lime_vk_create_shaders_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_create_shaders_ext", "oiiiioooooo", false));
+	private static var lime_vk_get_shader_binary_data_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
+		"lime_vk_get_shader_binary_data_ext", "oiiiiiio", false));
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_ext = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_count_ext", "oiiiiiiob", false));
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_draw_mesh_tasks_indirect_count_nv", "oiiiiiiob", false));
+	private static var lime_vk_cmd_trace_rays_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_trace_rays_nv", "oiiiiiiob", false));
+	private static var lime_vk_cmd_build_acceleration_structure_nv = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Bool>(cpp.Prime._loadPrime("lime",
+		"lime_vk_cmd_build_acceleration_structure_nv", "oiiiiiioiiiiiiiib", false));
 
 	private static var lime_vk_allocate_memory_ex = new cpp.Callable<cpp.Object->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->Int->cpp.Object>(cpp.Prime._loadPrime("lime",
 		"lime_vk_allocate_memory_ex", "oiiiiiiiiiiio", false));
@@ -7866,7 +7884,13 @@ class NativeCFFI
 
 	private static var lime_vk_get_physical_device_surface_present_modes = CFFI.load("lime", "lime_vk_get_physical_device_surface_present_modes", 7);
 
-	private static var lime_vk_create_device_with_features = CFFI.load("lime", "lime_vk_create_device_with_features", 8);
+	private static var lime_vk_create_device_with_features = CFFI.load("lime", "lime_vk_create_device_with_features", 10);
+	private static var lime_vk_create_shaders_ext = CFFI.load("lime", "lime_vk_create_shaders_ext", 10);
+	private static var lime_vk_get_shader_binary_data_ext = CFFI.load("lime", "lime_vk_get_shader_binary_data_ext", 7);
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_ext = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_count_ext", 8);
+	private static var lime_vk_cmd_draw_mesh_tasks_indirect_count_nv = CFFI.load("lime", "lime_vk_cmd_draw_mesh_tasks_indirect_count_nv", 8);
+	private static var lime_vk_cmd_trace_rays_nv = CFFI.load("lime", "lime_vk_cmd_trace_rays_nv", 8);
+	private static var lime_vk_cmd_build_acceleration_structure_nv = CFFI.load("lime", "lime_vk_cmd_build_acceleration_structure_nv", 16);
 
 	private static var lime_vk_allocate_memory_ex = CFFI.load("lime", "lime_vk_allocate_memory_ex", 12);
 
@@ -12326,7 +12350,31 @@ class NativeCFFI
 		return null;
 	}
 
-	@:hlNative("lime", "hl_vk_create_device_with_features") private static function lime_vk_create_device_with_features(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:hl.NativeArray<Dynamic>, features:hl.NativeArray<Dynamic>):Dynamic
+	@:hlNative("lime", "hl_vk_create_device_with_features") private static function lime_vk_create_device_with_features(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, physicalDeviceHigh:Int, physicalDeviceLow:Int, queueFamilyIndex:Int, extensions:hl.NativeArray<Dynamic>, features:hl.NativeArray<Dynamic>, extFeatureSTypes:hl.NativeArray<Dynamic>, extFeatureWords:hl.NativeArray<Dynamic>):Dynamic
+	@:hlNative("lime", "hl_vk_create_shaders_ext") private static function lime_vk_create_shaders_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, infos:hl.NativeArray<Dynamic>, codes:hl.NativeArray<Dynamic>, names:hl.NativeArray<Dynamic>, setLayouts:hl.NativeArray<Dynamic>, pushRanges:hl.NativeArray<Dynamic>):Dynamic
+	{
+		return null;
+	}
+	@:hlNative("lime", "hl_vk_get_shader_binary_data_ext") private static function lime_vk_get_shader_binary_data_ext(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, shaderHigh:Int, shaderLow:Int):Dynamic
+	{
+		return null;
+	}
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_count_ext") private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_ext(handle:CFFIPointer, packed:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+	@:hlNative("lime", "hl_vk_cmd_draw_mesh_tasks_indirect_count_nv") private static function lime_vk_cmd_draw_mesh_tasks_indirect_count_nv(handle:CFFIPointer, packed:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+	@:hlNative("lime", "hl_vk_cmd_trace_rays_nv") private static function lime_vk_cmd_trace_rays_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, packed:hl.NativeArray<Dynamic>):Bool
+	{
+		return false;
+	}
+	@:hlNative("lime", "hl_vk_cmd_build_acceleration_structure_nv") private static function lime_vk_cmd_build_acceleration_structure_nv(handle:CFFIPointer, instanceHigh:Int, instanceLow:Int, deviceHigh:Int, deviceLow:Int, commandBufferHigh:Int, commandBufferLow:Int, info:hl.NativeArray<Dynamic>, instanceBufferHigh:Int, instanceBufferLow:Int, instanceOffsetHigh:Int, instanceOffsetLow:Int, dstHigh:Int, dstLow:Int, srcHigh:Int, srcLow:Int):Bool
+	{
+		return false;
+	}
 	{
 		return null;
 	}

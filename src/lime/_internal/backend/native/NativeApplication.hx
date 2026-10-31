@@ -484,6 +484,9 @@ class NativeApplication
 				case RENDER_CONTEXT_LOST:
 					if (window.__backend.useHardware && window.context != null)
 					{
+						// The native context is gone; force the next render() to make it current again
+						lime._internal.backend.native.NativeWindow.__currentContextHandle = null;
+
 						switch (window.context.type)
 						{
 							case OPENGL, OPENGLES, WEBGL:
@@ -689,10 +692,19 @@ class NativeApplication
 
 			if (foundStopped)
 			{
-				Timer.sRunningTimers = Timer.sRunningTimers.filter(function(val)
+				// Compact in place instead of allocating a new array + closure via filter()
+				var i = 0;
+				while (i < Timer.sRunningTimers.length)
 				{
-					return val.mRunning;
-				});
+					if (Timer.sRunningTimers[i].mRunning)
+					{
+						i++;
+					}
+					else
+					{
+						Timer.sRunningTimers.splice(i, 1);
+					}
+				}
 			}
 		}
 		#if (haxe_ver >= 4.2)

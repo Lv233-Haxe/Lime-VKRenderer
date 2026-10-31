@@ -413,9 +413,12 @@ class HTML5Application
 
 			deltaTime = currentUpdate - lastUpdate;
 
+			// onUpdate is an Application-level event: dispatch once per frame,
+			// not once per window (matches the native backend behavior)
+			parent.onUpdate.dispatch(Std.int(deltaTime));
+
 			for (window in parent.__windows)
 			{
-				parent.onUpdate.dispatch(Std.int(deltaTime));
 				if (window.context != null) window.onRender.dispatch(window.context);
 			}
 

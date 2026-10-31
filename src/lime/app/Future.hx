@@ -321,7 +321,18 @@ import lime.utils.Log;
 	private static var promises:Map<Int, {complete:Dynamic->Dynamic, error:Dynamic->Dynamic, progress:Int->Int->Dynamic}>;
 
 	public static var minThreads(default, set):Int = 0;
-	public static var maxThreads(default, set):Int = 1;
+
+	/**
+		Maximum worker threads backing async `Future` jobs (`useThreads = true`).
+
+		The default of 1 serialized all async work; a small pool lets independent
+		decode jobs (image/audio/font loading) run in parallel on background
+		threads. Completion/error callbacks are still marshalled to the main
+		thread by `ThreadPool`, so multiple workers are safe as long as the jobs
+		themselves are thread-safe (lime's built-in decoders are per-call).
+		Settable at runtime before heavy loading, e.g. `FutureWork.maxThreads = 4`.
+	**/
+	public static var maxThreads(default, set):Int = 4;
 	public static var activeJobs(get, never):Int;
 
 	@:allow(lime.app.Promise)
@@ -402,7 +413,7 @@ import lime.utils.Log;
 		return minThreads = value;
 	}
 
-	@:noCompletion private static inline function set_maxThreads(value:Int):Int
+	@:noCompletion public static inline function set_maxThreads(value:Int):Int
 	{
 		if (threadPool != null)
 		{

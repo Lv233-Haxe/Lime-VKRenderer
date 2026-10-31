@@ -149,7 +149,11 @@ abstract DataPointer(DataPointerType) to DataPointerType
 
 	private static function __withOffset(data:DataPointer, offset:Int):DataPointer
 	{
-		#if (lime_cffi && !macro)
+		#if (cpp && !cppia && !doc_gen)
+		// Inline pointer arithmetic instead of crossing the CFFI boundary for every +/-
+		if (data == 0) return cast 0;
+		return untyped __cpp__('(uintptr_t)({0}) + (uintptr_t)(intptr_t)({1})', data, offset);
+		#elseif (lime_cffi && !macro)
 		if (data == 0) return cast 0;
 		var data:Float = NativeCFFI.lime_data_pointer_offset(data, offset);
 		return new DataPointer(data);

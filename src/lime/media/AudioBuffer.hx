@@ -472,6 +472,29 @@ class AudioBuffer
 		#else
 		// TODO: Streaming
 
+		#if (lime_cffi && !macro)
+		// Local files read AND decode directly on the FutureWork pool so the
+		// main thread is never blocked by SDLSound/WAV/OGG/MP3/FLAC decoding
+		// (all per-call and thread-safe, see lime_audio_load_*). Previously
+		// only the file read was backgrounded and the decode ran on the main
+		// thread inside HTTPRequest's fromBytes conversion. Remote URLs and
+		// other targets fall through to the original implementation below.
+		if (path != null && path.indexOf("http://") != 0 && path.indexOf("https://") != 0)
+		{
+			return new Future(function():AudioBuffer
+			{
+				var audioBuffer = AudioBuffer.fromFile(path);
+
+				if (audioBuffer == null)
+				{
+					throw "";
+				}
+
+				return audioBuffer;
+			}, true);
+		}
+		#end
+
 		var request = new HTTPRequest<AudioBuffer>();
 		return request.load(path).then(function(buffer)
 		{

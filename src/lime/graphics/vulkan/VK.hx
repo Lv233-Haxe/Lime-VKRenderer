@@ -31,6 +31,11 @@ class VK
 	public static inline var ERROR_OUT_OF_DATE_KHR = -1000001004;
 
 	public static inline var KHR_SWAPCHAIN_EXTENSION_NAME = "VK_KHR_swapchain";
+	public static inline var EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME = "VK_EXT_extended_dynamic_state3";
+	public static inline var EXT_SHADER_OBJECT_EXTENSION_NAME = "VK_EXT_shader_object";
+	public static inline var EXT_EXTENDED_DYNAMIC_STATE_2_EXTENSION_NAME = "VK_EXT_extended_dynamic_state2";
+	public static inline var SHADER_CODE_TYPE_SPIRV_EXT = 0;
+	public static inline var SHADER_CODE_TYPE_BINARY_EXT = 1;
 
 	public static inline var PHYSICAL_DEVICE_TYPE_OTHER = 0;
 	public static inline var PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU = 1;
@@ -231,6 +236,10 @@ class VK
 	public static inline var PRIMITIVE_TOPOLOGY_TRIANGLE_FAN = 5;
 
 	public static inline var POLYGON_MODE_FILL = 0;
+	public static inline var LOGIC_OP_COPY = 3;
+	public static inline var TESSELLATION_DOMAIN_ORIGIN_UPPER_LEFT = 0;
+	public static inline var PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT = 0;
+	public static inline var LINE_RASTERIZATION_MODE_DEFAULT_EXT = 0;
 	public static inline var POLYGON_MODE_LINE = 1;
 	public static inline var POLYGON_MODE_POINT = 2;
 
@@ -721,6 +730,7 @@ class VK
 	public static inline var DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT = 0x00000008;
 
 	public static inline var DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT = 0x00000002;
+	public static inline var DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR = 0x00000001;
 	public static inline var DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT = 0x00000002;
 
 	public static inline var BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT = 0x00020000;
@@ -886,6 +896,36 @@ class VK
 	// Sparse image residency: required before an image may carry
 	// VK_IMAGE_CREATE_SPARSE_RESIDENCY_BIT and be bound with VkSparseImageMemoryBindInfo.
 	public static inline var DEVICE_FEATURE_SPARSE_RESIDENCY_IMAGE_2D = 56;
+
+	// ---- Vulkan 1.4 device features (VkPhysicalDeviceVulkan14Features) ----
+	// Ids map 1:1 to that struct's VkBool32 fields in declaration order, as of
+	// vulkan_core.h 1.4.357 (21 fields). The tail fields -- subgroupRotateClustered,
+	// the six line-rasterization split bits, pipelineRobustness and hostImageCopy --
+	// were appended to the struct after the initial Vulkan 1.4 release; on older
+	// headers/drivers they are simply never reported, and requesting them is
+	// clipped by the same mechanism as any other unsupported feature.
+	// Chaining any of these ids requires a device that reports apiVersion >= 1.4.
+	public static inline var DEVICE_FEATURE_GLOBAL_PRIORITY_QUERY = 57;
+	public static inline var DEVICE_FEATURE_SHADER_SUBGROUP_ROTATE = 58;
+	public static inline var DEVICE_FEATURE_SHADER_SUBGROUP_ROTATE_CLUSTERED = 59;
+	public static inline var DEVICE_FEATURE_SHADER_FLOAT_CONTROLS_2 = 60;
+	public static inline var DEVICE_FEATURE_SHADER_EXPECT_ASSUME = 61;
+	public static inline var DEVICE_FEATURE_RECTANGULAR_LINES = 62;
+	public static inline var DEVICE_FEATURE_BRESENHAM_LINES = 63;
+	public static inline var DEVICE_FEATURE_SMOOTH_LINES = 64;
+	public static inline var DEVICE_FEATURE_STIPPLED_RECTANGULAR_LINES = 65;
+	public static inline var DEVICE_FEATURE_STIPPLED_BRESENHAM_LINES = 66;
+	public static inline var DEVICE_FEATURE_STIPPLED_SMOOTH_LINES = 67;
+	public static inline var DEVICE_FEATURE_VERTEX_ATTRIBUTE_INSTANCE_RATE_DIVISOR = 68;
+	public static inline var DEVICE_FEATURE_VERTEX_ATTRIBUTE_INSTANCE_RATE_ZERO_DIVISOR = 69;
+	public static inline var DEVICE_FEATURE_INDEX_TYPE_UINT8 = 70;
+	public static inline var DEVICE_FEATURE_DYNAMIC_RENDERING_LOCAL_READ = 71;
+	public static inline var DEVICE_FEATURE_MAINTENANCE5 = 72;
+	public static inline var DEVICE_FEATURE_MAINTENANCE6 = 73;
+	public static inline var DEVICE_FEATURE_PIPELINE_PROTECTED_ACCESS = 74;
+	public static inline var DEVICE_FEATURE_PIPELINE_ROBUSTNESS = 75;
+	public static inline var DEVICE_FEATURE_HOST_IMAGE_COPY = 76;
+	public static inline var DEVICE_FEATURE_PUSH_DESCRIPTOR = 77;
 
 	public static inline var DEVICE_FEATURE_CORE_COUNT = 16;
 

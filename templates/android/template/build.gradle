@@ -2,8 +2,11 @@
 
 buildscript {
 	repositories {
-		mavenCentral()
-		google()
+	maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }	
+	maven { url 'https://maven.aliyun.com/repository/google' }	
+	maven { url 'https://maven.aliyun.com/repository/public' }	
+	mavenCentral()
+	google()
 	}
 	dependencies {
 		classpath 'com.android.tools.build:gradle:::ANDROID_GRADLE_PLUGIN::'
@@ -15,8 +18,11 @@ buildscript {
 
 allprojects {
 	repositories {
-		mavenCentral()
-		google()
+	maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }	
+	maven { url 'https://maven.aliyun.com/repository/google' }	
+	maven { url 'https://maven.aliyun.com/repository/public' }	
+	mavenCentral()
+	google()
 	}::if ANDROID_GRADLE_BUILD_DIRECTORY::
 	buildDir = "::ANDROID_GRADLE_BUILD_DIRECTORY::/::APP_FILE::/${project.name}"::end::
 }
@@ -32,6 +38,9 @@ wrapper {
 configure(subprojects.findAll {!it.file('build.gradle').exists() && it.file('build.xml').exists()}) {
 	buildscript {
 		repositories {
+			maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+			maven { url 'https://maven.aliyun.com/repository/google' }
+			maven { url 'https://maven.aliyun.com/repository/public' }
 			mavenCentral()
 			google()
 		}

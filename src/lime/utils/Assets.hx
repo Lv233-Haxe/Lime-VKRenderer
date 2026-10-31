@@ -713,8 +713,19 @@ private class LibrarySymbol
 	public inline function new(id:String)
 	{
 		var colonIndex = id.indexOf(":");
-		libraryName = id.substring(0, colonIndex);
-		symbolName = id.substring(colonIndex + 1);
+
+		if (colonIndex == -1)
+		{
+			// Fast path for un-prefixed ids (the common case): no substring allocations
+			libraryName = "default";
+			symbolName = id;
+		}
+		else
+		{
+			libraryName = id.substring(0, colonIndex);
+			symbolName = id.substring(colonIndex + 1);
+		}
+
 		library = Assets.getLibrary(libraryName);
 	}
 

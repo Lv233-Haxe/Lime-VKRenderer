@@ -39,6 +39,25 @@ import lime._internal.backend.native.NativeCFFI;
 class VKRenderer
 {
 	public var commandPool(get, never):#if (!lime_doc_gen || lime_vulkan) VKCommandPool #else Dynamic #end;
+	/**
+		Queue family the renderer's device was created against.
+
+		Exposed so a second recorder (a 3D backend sharing this device) can
+		create its own command pool: a command pool is bound to one queue
+		family, and reusing the renderer's pool would make either side's
+		`vkResetCommandPool` invalidate the other's command buffers.
+	**/
+	public var queueFamily(get, never):#if (!lime_doc_gen || lime_vulkan) VKQueueFamilyInfo #else Dynamic #end;
+
+	/**
+		Most recently initialised renderer, or `null`.
+
+		A 3D backend has to record into the same `VkDevice` that owns the
+		window's images, and there is no portable way to ask a `Context3D` for
+		it without depending on the concrete context class. This is that
+		hand-off: it is set by `initialize()` and cleared by `dispose()`.
+	**/
+	public static var current:VKRenderer = null;
 	public var device(get, never):#if (!lime_doc_gen || lime_vulkan) VKDevice #else Dynamic #end;
 	public var info(get, never):String;
 	public var isValid(get, never):Bool;
@@ -222,7 +241,9 @@ class VKRenderer
 				for (i in 0...8) __renderFinishedByImage.push(__device.createSemaphore());
 			}
 
-			return createSwapchainResources();
+			var ready = createSwapchainResources();
+			if (ready) current = this;
+			return ready;
 		}
 		catch (e:Dynamic)
 		{
@@ -628,6 +649,8 @@ class VKRenderer
 		disposeDevice();
 		#end
 
+		if (current == this) current = null;
+
 		#if (!macro && lime_cffi)
 		if (__handle != null)
 		{
@@ -723,6 +746,15 @@ class VKRenderer
 	{
 		#if (!lime_doc_gen || lime_vulkan)
 		return __commandPool;
+		#else
+		return null;
+		#end
+	}
+
+	private inline function get_queueFamily():#if (!lime_doc_gen || lime_vulkan) VKQueueFamilyInfo #else Dynamic #end
+	{
+		#if (!lime_doc_gen || lime_vulkan)
+		return __queueFamily;
 		#else
 		return null;
 		#end

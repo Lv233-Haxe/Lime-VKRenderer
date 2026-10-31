@@ -114,9 +114,12 @@ class EventMacro
 				};
 
 			// Keep listener exceptions on the original dispatch path without a cleanup wrapper.
+			// The timestamp is resolved lazily: `__timestamp = -1` marks "no explicit dispatch
+			// timestamp" and the `timestamp` getter returns the current timer on demand, so the
+			// per-dispatch `System.getTimer()` CFFI call is eliminated from the frame loop.
 			var dispatch = macro
 				{
-					__timestamp = lime.system.System.getTimer();
+					__timestamp = -1;
 					canceled = false;
 					$dispatchListeners;
 				};

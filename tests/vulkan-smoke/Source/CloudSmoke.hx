@@ -23,10 +23,19 @@ import lime.graphics.vulkan.VKStructureType;
 
 class CloudSmoke
 {
-	public static function run(device:VKDevice, queue:VKQueue, featureRequests:Array<Int> = null):Bool
+	// Negotiated API version, set by run(). See ModernApiChecks for why these
+	// gates exist: on 1.0/1.1 hardware the 1.2+ commands are simply absent.
+	private static var apiMajor = 1;
+	private static var apiMinor = 0;
+
+	public static function run(device:VKDevice, queue:VKQueue, featureRequests:Array<Int> = null, negotiatedMajor:Int = 1,
+			negotiatedMinor:Int = 0):Bool
 	{
 		var ok = true;
 		var pool = device.createCommandPool();
+
+		apiMajor = negotiatedMajor;
+		apiMinor = negotiatedMinor;
 		if (pool == null)
 		{
 			trace("[api] FAIL createCommandPool");
@@ -55,6 +64,17 @@ class CloudSmoke
 	private static function stdout(message:String):Void
 	{
 		trace(message);
+	}
+
+	private static function skipIfBelow(major:Int, minor:Int, name:String):Bool
+	{
+		if (apiMajor > major || (apiMajor == major && apiMinor >= minor))
+		{
+			return false;
+		}
+
+		stdout("[api] SKIP " + name + " (needs Vulkan " + major + "." + minor + "; negotiated " + apiMajor + "." + apiMinor + ")");
+		return true;
 	}
 
 	private static function checkFenceStatus(device:VKDevice):Bool
@@ -117,6 +137,8 @@ class CloudSmoke
 
 	private static function checkQueryCopy(device:VKDevice, queue:VKQueue, pool:VKCommandPool, commands:VKCommandBuffer):Bool
 	{
+		if (skipIfBelow(1, 3, "querycopy")) return true;
+
 		var queryPool = device.createQueryPool(VK.QUERY_TYPE_TIMESTAMP, 1);
 		var destination = device.createBufferWithMemory(Int64.ofInt(16), VK.BUFFER_USAGE_TRANSFER_DST_BIT,
 			VK.MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK.MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -140,7 +162,8 @@ class CloudSmoke
 			&& commands.begin()
 			&& commands.resetQueryPool(queryPool, 0, 1)
 			&& commands.writeTimestamp(queryPool, 0, VK.PIPELINE_STAGE_TOP_OF_PIPE_BIT)
-			&& commands.pipelineBarrier2(VK.PIPELINE_STAGE_2_TOP_OF_PIPE_BIT, VK.ACCESS_2_NONE, VK.PIPELINE_STAGE_2_TRANSFER_BIT, VK.ACCESS_2_TRANSFER_WRITE_BIT)
+			&& commands.pipelineBarrier2(Int64.ofInt(VK.PIPELINE_STAGE_2_TOP_OF_PIPE_BIT), Int64.ofInt(VK.ACCESS_2_NONE),
+				Int64.ofInt(VK.PIPELINE_STAGE_2_TRANSFER_BIT), Int64.ofInt(VK.ACCESS_2_TRANSFER_WRITE_BIT))
 			&& commands.copyQueryPoolResults(queryPool, destination, 0, 1, Int64.ofInt(0), Int64.ofInt(4), VK.QUERY_RESULT_WAIT_BIT | VK.QUERY_RESULT_64_BIT);
 
 		var submitted = false;
@@ -185,6 +208,8 @@ class CloudSmoke
 	**/
 	private static function checkDynamicRendering(device:VKDevice, featureRequests:Array<Int>):Bool
 	{
+		if (skipIfBelow(1, 3, "dynamicrendering")) return true;
+
 		if (featureRequests == null || featureRequests.indexOf(VK.DEVICE_FEATURE_DYNAMIC_RENDERING) < 0)
 		{
 			var words = device.physicalDevice.getFeatures2([VKStructureType.PHYSICAL_DEVICE_VULKAN_1_3_FEATURES]);

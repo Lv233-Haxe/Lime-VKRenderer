@@ -904,9 +904,12 @@ class VKCommandBuffer
 		return false;
 	}
 
-	public function pipelineBarrier2(srcStageMask:Int, srcAccessMask:Int, dstStageMask:Int, dstAccessMask:Int):Bool
+	public function pipelineBarrier2(srcStageMask:Int64, srcAccessMask:Int64, dstStageMask:Int64, dstAccessMask:Int64):Bool
 	{
-		var state = [srcStageMask, srcAccessMask, dstStageMask, dstAccessMask];
+		// Stage/access-2 flags are 64-bit (e.g. VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR
+		// is 1<<32): each mask rides the flat list as a high/low int pair.
+		var state = [srcStageMask.high, srcStageMask.low, srcAccessMask.high, srcAccessMask.low,
+			dstStageMask.high, dstStageMask.low, dstAccessMask.high, dstAccessMask.low];
 
 		#if (!macro && lime_cffi && lime_vulkan)
 		if (isValid() && device != null && device.isValid())
@@ -919,16 +922,16 @@ class VKCommandBuffer
 		return false;
 	}
 
-	public function pipelineBarrierImage2(image:VKImage, oldLayout:Int, newLayout:Int, srcStageMask:Int, dstStageMask:Int, srcAccessMask:Int,
-			dstAccessMask:Int, aspectMask:Int, baseMipLevel:Int = 0, levelCount:Int = 1, baseArrayLayer:Int = 0, layerCount:Int = 1):Bool
+	public function pipelineBarrierImage2(image:VKImage, oldLayout:Int, newLayout:Int, srcStageMask:Int64, dstStageMask:Int64, srcAccessMask:Int64,
+			dstAccessMask:Int64, aspectMask:Int, baseMipLevel:Int = 0, levelCount:Int = 1, baseArrayLayer:Int = 0, layerCount:Int = 1):Bool
 	{
 		var state = [
 			oldLayout,
 			newLayout,
-			srcStageMask,
-			dstStageMask,
-			srcAccessMask,
-			dstAccessMask,
+			srcStageMask.high, srcStageMask.low,
+			dstStageMask.high, dstStageMask.low,
+			srcAccessMask.high, srcAccessMask.low,
+			dstAccessMask.high, dstAccessMask.low,
 			aspectMask,
 			baseMipLevel,
 			levelCount,
@@ -1022,6 +1025,163 @@ class VKCommandBuffer
 	// need a 1.3 device, so they return false (rather than failing) when the
 	// PFN is unavailable on older hardware.
 	// ------------------------------------------------------------------
+
+
+	public function setDepthClampEnableEXT(depthClampEnable:Bool):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_depth_clamp_enable_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, depthClampEnable ? 1 : 0);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setPolygonModeEXT(polygonMode:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_polygon_mode_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, polygonMode);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setRasterizationSamplesEXT(rasterizationSamples:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_rasterization_samples_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, rasterizationSamples);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setAlphaToCoverageEnableEXT(alphaToCoverageEnable:Bool):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_alpha_to_coverage_enable_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, alphaToCoverageEnable ? 1 : 0);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setAlphaToOneEnableEXT(alphaToOneEnable:Bool):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_alpha_to_one_enable_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, alphaToOneEnable ? 1 : 0);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setLogicOpEnableEXT(logicOpEnable:Bool):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_logic_op_enable_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, logicOpEnable ? 1 : 0);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setLogicOpEXT(logicOp:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_logic_op_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, logicOp);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setTessellationDomainOriginEXT(domainOrigin:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_tessellation_domain_origin_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, domainOrigin);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setProvokingVertexModeEXT(provokingVertexMode:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_provoking_vertex_mode_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, provokingVertexMode);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setLineRasterizationModeEXT(lineRasterizationMode:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_line_rasterization_mode_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, lineRasterizationMode);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setDepthClipNegativeOneToOneEXT(negativeOneToOne:Bool):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_depth_clip_negative_one_to_one_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, negativeOneToOne ? 1 : 0);
+		}
+		#end
+
+		return false;
+	}
+
+	public function setPatchControlPointsEXT(patchControlPoints:Int):Bool
+	{
+		#if (!macro && lime_cffi && lime_vulkan)
+		if (isValid() && device != null && device.isValid())
+		{
+			return NativeCFFI.lime_vk_cmd_set_patch_control_points_ext(device.instance.context.__windowHandle, device.instance.handle.high,
+				device.instance.handle.low, device.handle.high, device.handle.low, handle.high, handle.low, patchControlPoints);
+		}
+		#end
+
+		return false;
+	}
 
 	public function setCullMode(cullMode:Int):Bool
 	{

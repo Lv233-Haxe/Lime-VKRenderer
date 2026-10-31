@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="OpenFL Vulkan" package="org.openfl.lime.openflvulkan" version="1.0.0" company="OpenFL" />
+	<app main="Main" path="Export" file="OpenFLVulkan" />
+
+	<source path="Source" />
+
+	<haxelib name="openfl" />
+
+	<window width="800" height="600" fps="60" background="#06060c" renderer="vulkan" />
+
+</project>

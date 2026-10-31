@@ -229,6 +229,10 @@ class NativeWindow
 				if (handle != null)
 				{
 					#if (!macro && lime_cffi)
+					if (__currentContextHandle == handle)
+					{
+						__currentContextHandle = null;
+					}
 					NativeCFFI.lime_window_close(handle);
 					#end
 
@@ -478,10 +482,20 @@ class NativeWindow
 		return null;
 	}
 
+	// Tracks the window whose render context is current on this thread, so the
+	// per-frame `lime_window_context_make_current` call can be skipped when the
+	// context did not change (the overwhelmingly common single-window case).
+	// Reset to null when the window closes or its render context is lost.
+	@:noCompletion @:dox(hide) public static var __currentContextHandle:Dynamic = null;
+
 	public function render():Void
 	{
 		#if (!macro && lime_cffi)
-		NativeCFFI.lime_window_context_make_current(handle);
+		if (__currentContextHandle != handle)
+		{
+			NativeCFFI.lime_window_context_make_current(handle);
+			__currentContextHandle = handle;
+		}
 		if (!useHardware)
 		{
 			#if lime_cairo

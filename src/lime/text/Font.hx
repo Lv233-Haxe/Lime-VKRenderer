@@ -242,6 +242,29 @@ class Font
 	 */
 	public static function loadFromFile(path:String):Future<Font>
 	{
+		#if (lime_cffi && !macro)
+		// Local files read AND parse directly on the FutureWork pool so the main
+		// thread is never blocked by FreeType parsing/decomposition (per-call
+		// FT_Library per Font, see Font.cpp constructor). Previously the parse
+		// ran on the main thread inside HTTPRequest's fromBytes conversion.
+		// Remote URLs keep the HTTPRequest path; other targets fall through to
+		// the original implementation below.
+		if (path != null && path.indexOf("http://") != 0 && path.indexOf("https://") != 0)
+		{
+			return new Future(function():Font
+			{
+				var font = Font.fromFile(path);
+
+				if (font == null)
+				{
+					throw "";
+				}
+
+				return font;
+			}, true);
+		}
+		#end
+
 		var request = new HTTPRequest<Font>();
 		return request.load(path).then(function(font)
 		{

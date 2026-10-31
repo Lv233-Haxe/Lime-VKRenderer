@@ -115,7 +115,7 @@ class VKPhysicalDevice
 		```
 	**/
 	public function createDeviceWithFeatures(queueFamily:VKQueueFamilyInfo = null, extensions:Array<String> = null,
-			features:Array<Int> = null):VKDevice
+			features:Array<Int> = null, extFeatureSTypes:Array<Int> = null, extFeatureWords:Array<Int> = null):VKDevice
 	{
 		if (queueFamily == null)
 		{
@@ -134,7 +134,7 @@ class VKPhysicalDevice
 
 		#if (!macro && lime_cffi && lime_vulkan)
 		var data:Dynamic = NativeCFFI.lime_vk_create_device_with_features(instance.context.__windowHandle, instance.handle.high, instance.handle.low,
-			handle.high, handle.low, queueFamily.index, extensions, features);
+			handle.high, handle.low, queueFamily.index, extensions, features, extFeatureSTypes, extFeatureWords);
 
 		if (data != null)
 		{

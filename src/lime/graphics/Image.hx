@@ -1039,6 +1039,29 @@ class Image
 
 		return promise.future;
 		#else
+		#if (lime_cffi && !macro)
+		// Local files read AND decode directly on the FutureWork pool so the
+		// main thread is never blocked by PNG/JPEG decoding (per-call and
+		// thread-safe, see lime_image_load_*). Previously only the file read
+		// was backgrounded and the decode ran on the main thread inside
+		// HTTPRequest's fromBytes conversion. Remote URLs and other targets
+		// fall through to the original implementation below.
+		if (path.indexOf("http://") != 0 && path.indexOf("https://") != 0)
+		{
+			return new Future(function():Image
+			{
+				var image = Image.fromFile(path);
+
+				if (image == null)
+				{
+					throw "";
+				}
+
+				return image;
+			}, true);
+		}
+		#end
+
 		var request = new HTTPRequest<Image>();
 		return request.load(path).then(function(image)
 		{

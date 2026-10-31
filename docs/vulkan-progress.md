@@ -14,7 +14,7 @@
 | Vulkan 1.4 Core 覆盖 | **234/234 = 100%**（19–22 批补入全部 19 条 1.4 独有命令） |
 | Vulkan 1.3 覆盖 | **215/215 = 100%**（16 批补齐；20 批补 feature 面：Inline Uniform Blocks + Subgroup Size Control） |
 | Haxe 封装类 | **80**（新增 `VKToolProperties` / `VKPrivateDataSlot` / `VKObjectType`）+ `VKCommandBuffer` 14 个动态状态方法（12批） |
-| 设备特性开启 | ✅ `createDeviceWithFeatures` / `allocateMemoryEx`；id 覆盖 **1.0 / 1.1 / 1.2 / 1.3**（1–55） |
+| 设备特性开启 | ✅ `createDeviceWithFeatures` / `allocateMemoryEx`；id 覆盖 **1.0 / 1.1 / 1.2 / 1.3 / 1.4**（1–77，第 24 批接 1.4 特性链） |
 | 表面查询（KHR 扩展，不计入 core） | ✅ capabilities / formats / present modes 已暴露 |
 | `VkStructureType` 常量 | **1251**（全量生成） |
 | `VK.FORMAT_*` 常量 | **370**（由 `vk_gen_format_constants.py` 从 `vulkan_core.h` 全量生成） |
@@ -587,7 +587,9 @@ out 方向的写目标，非 const 也一样）。这类错误编译器不报（
 **1.4 core：234/234 = 100%**（19–22 批补入全部 19 条 1.4 独有命令；22 批的**二级数组通道**吃掉最后 12 条：
 push descriptor 家族、host image copy 3 条、`vkMapMemory2`、`vkCmdBindDescriptorSets2`、rendering attachment /
 input-attachment indices、`vkGetDeviceImageSubresourceLayout`、`vkGetRenderingAreaGranularity`）。
-另需接 **1.4 特性链**（`VkPhysicalDeviceVulkan14Features`，`DEVICE_FEATURE_*` 需从 56 起续）才能合法调用需特性位的命令。
+~~另需接 1.4 特性链~~ **第 24 批已接**：`VkPhysicalDeviceVulkan14Features` 进入 `createDeviceWithFeatures`
+（`DEVICE_FEATURE_*` id 57–77，含 1.4.357 头文件追加的尾部 9 位），带 apiVersion>=1.4 门控与逐位裁剪；
+新增类型化类 `VKPhysicalDeviceVulkan13Features` / `VKPhysicalDeviceVulkan14Features`。
 
 **扩展体系**（generic 口径，排除冷门厂商）：扩展独有命令 **377** 条，已实现 **300 = 79.6%**（21 批 `const void*` +4、23 批二级数组 +31），
 主动拒绝 **77** 条（54 嵌套结构体成员 / 17 `void*` 写目标 / 4 参数超限 / 2 其它）。
@@ -730,3 +732,256 @@ gpuProbe/isoFill 证明 GPU 真实执行。构建：`lime rebuild windows -64` �
 
 **基准结果**：`seconds=60 frames=3591 resizes=20 recreations=40 runtimeProbeFailures=0`，
 **Validation Error = 0 / FAIL = 0 / PASS = 37 / GATE: PASS**。
+
+### 第 24 批（函数数不变）：**Vulkan 1.4 特性链接入（id 57–77）**
+
+1.4 的 234 条命令（19–22 批）此前"有指针不可用"——push descriptor / maintenance5/6 /
+indexTypeUint8 / lineRasterization / local-read 等需要特性位的命令，在
+`createDeviceWithFeatures` 只认 core id 1–55 时无法合法调用。本批补上整条 1.4 特性链：
+
+- **id 57–77**：`VkPhysicalDeviceVulkan14Features` 的 **21 个** `VkBool32` 字段按声明顺序 1:1 编号。
+  字段表以本机 SDK **1.4.357** 头文件为准——比 1.4 首发多 9 个尾部字段
+  （`shaderSubgroupRotateClustered`、6 个 line-rasterization 拆分位、`pipelineRobustness`、
+  `hostImageCopy`），旧驱动上它们恒为 false、按既有裁剪机制跳过。
+- **C++（neko/HL 两侧同步）**：`LimeVulkanFeatureState` + `features14/uses14`；
+  `ApplyVulkanDeviceFeature` / `VulkanDeviceFeatureName` 补 21 个 case；版本门控
+  `requiredMinor = uses14 ? 4 : ...`；supportedState 查询 / `VulkanFeatureBitsSatisfied`
+  校验 / 逐位裁剪（含 `f14[..]` 诊断输出）/ enabledChain 五处镜像 features13。
+- **Haxe**：`VK.DEVICE_FEATURE_*` 21 个常量（57–77）+ `DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR`；
+  新增类型化类 `VKPhysicalDeviceVulkan13Features`（15 字段，补 1.3 的缺口）与
+  `VKPhysicalDeviceVulkan14Features`（21 字段），走既有 `getFeatures2` words 通道，无新 CFFI。
+- **smoke**：`Main.buildFeatureRequests` ceiling 抬到 77（apiVersion>=1.4 时）；
+  `ModernApiChecks.checkVulkan14Features` 三段验证——① 类型化解码 + 8 个 1.4 核心强制位断言
+  （subgroupRotate / floatControls2 / expectAssume / indexTypeUint8 / localRead /
+  maintenance5/6 / pushDescriptor）；② **端到端**：特性链真到设备——直调
+  `lime_vk_cmd_bind_index_buffer_2` 以 `INDEX_TYPE_UINT8` 录制（特性未生效即违规）；
+  ③ pushDescriptor 开启后 PUSH_DESCRIPTOR 布局必须过 `getDescriptorSetLayoutSupport`。
+- 真机（GTX 750 Ti，驱动上报 **1.4**）预期 1.4 检查全 PASS；1.3 及以下机器诚实 SKIP。
+
+> 覆盖率不变（1.0–1.4 命令面均 100%）；**特性面补齐至 1.4**（id 1–77）。
+
+### 2026-10-25：**Android 平台首次打通（smoke APK 产出）**
+
+Vulkan 后端首次在 Android 上完成交叉编译与打包（`tests/vulkan-smoke` 直接以 `lime build android` 出包）。
+一路上修掉的都是"android 分支从未被编译过"类预存破损：
+
+| 问题 | 修复 |
+|---|---|
+| NDK r20b 自带 vulkan.h 停在 1.1,而代码用 1.3/1.4 结构体 | Build.xml 补 `if="android"` 的 `-I${VULKAN_SDK}/Include` |
+| hxcpp clang android 工具链不传 `-march`(基线落 ARMv4T),vulkan 头按 `__ARM_ARCH<7` 拒编 | Build.xml 补 `-march=armv7-a if="android HXCPP_ARMV7"` |
+| SDL3 迁移漏改 android 专属调用 `SDL_AndroidGetJNIEnv` | SDLSystem.cpp 改 `SDL_GetAndroidJNIEnv` |
+| `fabs` 在 android/clang++ 无传递包含 | SDLWindow.cpp 显式 `#include <math.h>` |
+| SDL android 找不到 `SDL_build_config.h` | sdl-files.xml 补 `-I sdl/include/build_config/ if="android"`(走分发器→现成 android 配置) |
+| **SDL android 文件列表严重不完整**:.so 链接期允许未定义符号,dlopen 才炸(`AAUDIO_bootstrap` 等 41 个) | 用 `llvm-nm -D --undefined-only` 全量对账,android 段补 17 个文件:aaudio/openslES 音频后端、pthread 的 mutex/sem/thread/TLS、unix 的 systimer/systime、posix 的 fsops/dlopen、**hidapi android 桥(hid.cpp,`PLATFORM_hid_*`×24)**、tray dummy、process dummy(配置启用的是 `SDL_PROCESS_DUMMY`) |
+| Gradle 发行版与 Maven 仓库(dl.google.com 不可达) | 模板 + `~/.gradle/init.d/init-mirror.gradle` 全局换腾讯/阿里云镜像;`templates/extension/dependencies/android/build.gradle` 同步 |
+
+- **产物**:`Export/android/bin/app/build/outputs/apk/debug/LimeVulkanSmoke-debug.apk`(arm64-v8a + armeabi-v7a 双 `liblime.so`+`libApplicationMain.so`,四个 SPIR-V 着色器进 assets);四 ABI ndll 全部 `ndll/Android/` 就位,0 错误。
+- **smoke 适配**(`Main.hx`):android 默认 **30s 定时结束**→输出 `[vk] SMOKE SUMMARY seconds=.. frames=.. status=PASS|FAIL` 单行(桌面默认仍无限跑,`LIME_VK_SMOKE_SECONDS` 可全局覆盖);`fail()` 也带 SUMMARY 行;检查结果记入 `checksFailed` 决定退出码。hxcpp 的 trace 在 android 落 logcat(tag `trace`)。
+- **门禁**:`.workbuddy/scripts/vk_smoke_gate_android.py`——构建→`adb install`→resolve-activity 启动→流式读 logcat 到 SUMMARY→判定(状态 PASS/无 FAIL 行),退出码即结论。
+- **待真机首跑**:安装 `adb install -r LimeVulkanSmoke-debug.apk` 后启动;预期 loader/设备版本协商日志 + 全套 `[api]`/`[vk]` 检查 + 30s 后 SUMMARY 自动退出。
+
+### 2026-10-31：**Android smoke 首跑推进到 Vulkan 初始化；MuMu 宿主驱动缺陷挡住最后一环**
+
+装机实测(MuMu 12,x86_64,Android 15)逐层打通后又消灭两个启动期崩溃:
+
+| 崩溃 | 根因 | 修复 |
+|---|---|---|
+| dlopen 构造期 SIGSEGV(pc=0) | hxcpp `CFFIPrime.h` 只定义到 15 参;lime 为 16 参写的兜底 `DEFINE_PRIME16` 抄了 `hx_register_prim` 注册行。桌面端 ndll 加载时 VM 已就绪、惰性解析可用;Android 上 SDL **先** dlopen liblime.so(VM 未启动),解析失败存 0 后调用 | 宏改为纯 EXPORT 桩(`cpp.Prime._loadPrime` 按导出名 dlsym,无需 VM);`init_array` 构造器逐个反汇编验证只剩 `__cxa_atexit` |
+| JNI `NoSuchMethodError: nativeSetupJNI` | 模板 Java 是 **SDL2 时代**的(缺 `nativeInitMainThread`/`nativeCleanupMainThread`/`onNativePinchStart` 等 SDL3 方法,`nativeSetupJNI` 签名 int≠C 表的 `()V`),`RegisterNatives` 直接抛异常 | 从上游 `release-3.4.14` 拉取 12 个 `org/libsdl/app/*.java` 替换(jsdelivr 镜像;旧文件备份 `.workbuddy/backup/sdl2-java/`);gradle 需 `clean` 一次清增量编译缓存 |
+
+**~~现状~~(已被下节推翻)**:~~推进到 Vulkan 窗口初始化时宿主渲染器崩溃……应用侧无解~~ ——当时把 `checkPrivateData` 触发的宿主崩溃误判成了"窗口初始化"阶段,见 2026-10-31(续)。
+
+- smoke 侧交付不变:30s 定时结束 + `[vk] SMOKE SUMMARY status=PASS|FAIL` 单行 + 门禁脚本 `vk_smoke_gate_android.py`。
+- **运行期验证需真机 ARM 设备**(2017 年后主流机型均支持 Vulkan):`adb install -r LimeVulkanSmoke-debug.apk` 后启动即测。
+- MuMu 若无 Vulkan 加速选项更新,smoke 在其上只可能 clean-FAIL(实例创建失败),不可能 PASS。
+
+### 2026-10-31(续):**MuMu Vulkan 模式 smoke 全绿 —— GATE PASS**
+
+推翻上节"应用侧无解"的结论:此前 VM 必死并非窗口初始化阶段,而是**检查套件跑到中段**的某条命令。
+定位手段:应用死时整台 VM 陪葬、guest logcat 随内存消失 → 在 `am start` **之前**挂后台流式
+`adb logcat > 文件`,VM 死后文件里保留死亡前全部输出;再给 `ModernApiChecks.run()` 每条检查
+加 `[api] RUN <name>` 起始标记(最后的 RUN 即凶手)。
+
+- **凶手**:`checkPrivateData` —— gfxstream/kona 直通层(MuMu 及各类 goldfish 系模拟器)在
+  `vkCreatePrivateDataSlot` 一族直接打死宿主渲染器(`nvoglv64.dll`,code 901),guest 侧无任何
+  tombstone。其余 ~25 项检查(含 BDA、features2、swapchainCreate、beginRendering 真实渲染提交)
+  在直通层上全部正常。
+- **修复**:`#if (android && !vkfull)` emu-safe 门 —— Android 默认构建诚实 SKIP 该检查
+  (`SKIP privateData (emu-safe: ... build with -Dvkfull on real hardware ...)`);真机全量跑加
+  `-Dvkfull`。RUN 标记保留,供后续宿主杀手二分。
+- **结果(MuMu 12,x86_64,Vulkan 渲染模式)**:
+
+  ```
+  [vk] api version: loader=1.3 device=1.3.0 -> using 1.3
+  [api] PASS ×35(含 bufferDeviceAddress / beginRendering / swapchainCreate / bindSparse)
+  [api] SKIP ×5(emu-safe privateData / 需 1.4 的 mapMemory2+14Features / externalProperties / extensionCommands)
+  [api] FAIL ×0
+  [vk] SMOKE SUMMARY seconds=30 frames=1782 status=PASS   (≈59fps,VM 存活,干净退出)
+  ```
+
+- 即用户判断的验证:**模拟器(kona 1.3 直通)上过了,同一 APK 在真机 ARM 上预期 99% 过**——
+  且真机可 `-Dvkfull` 全量覆盖 1.4 特性链。
+
+### 2026-10-31(续 2):**场景升级 —— 16 立方体动态 UBO 网格 + FBO 读回验证,双端全绿**
+
+smoke 渲染场景从"单立方体"升级为三项叠加的综合稳定性测试:
+
+1. **UBO 稳定性(视觉路径)**:`DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC` 单描述符集驱动
+   4×4=16 个旋转立方体,每帧重写 4096B(16×256B 切片,256 ≥ 任何
+   `minUniformBufferOffsetAlignment`),bind 期 dynamicOffset=i*256 选片;
+   每帧 16 次 bind+draw,30s ≈ 1800 帧连续改写。
+2. **FBO + UBO 正确性(读回验证,启动时一次)**:新 `grid.vert/frag.spv`(tint 即切片内容),
+   渲进专用验证 FBO(R8G8B8A8,finalLayout=TRANSFER_SRC)→ `copyImageToBufferRegion` →
+   `VKBuffer.download` → 16 格中心像素逐一断言——**切片寻址/FBO 渲染/回读全链路像素级验证**。
+   任一切片错乱立刻暴露为对应格子颜色错误(实测抓出过一次全 16 格垂直翻转:
+   Vulkan NDC y 朝下,与 GL 相反)。
+3. **兼容性陷阱(真机级)**:描述符池预算 CIS=2 不够三套 CIS 布局使用——
+   **NVIDIA 桌面驱动静默允许超发所以桌面过了,MuMu/gfxstream 严格执行当场暴露**
+   (allocate 返回失败)。修正为 CIS=3 / UBD=2 / maxSets=4。
+
+新增资源:grid 双着色器、验证 renderPass/Image/View/Framebuffer/staging、
+grid+cubeDyn 两套管线与动态 UBO 缓冲;dispose 全覆盖。
+
+| 端 | 结果 |
+|---|---|
+| Windows(GTX 750 Ti,1.4) | 39 PASS / 0 FAIL,gridUboReadback 16/16 像素精确 |
+| MuMu 12(kona 1.3 直通) | **36 PASS / 0 FAIL**,gridUboReadback 16/16,SMOKE SUMMARY seconds=30 frames=1792 status=PASS(≈60fps,VM 存活) |
+
+### 2026-10-31(续 3):**B 档第一批 —— 扩展特性链(B5)+ 64 位掩码(B6),双端全绿**
+
+**B5 扩展特性链**:解锁"按 sType 请求任意 `Vk*Features*` 结构体"的能力,此前 159 条需要 EXT 特性位的
+扩展命令首次可合法调用——含长期没有运行期覆盖的 `vkCmdSetSampleMaskEXT`(派生长度数组编码路径)。
+
+- CFFI:`lime_vk_create_device_with_features` 增至 10 参(`extSTypes` + `extWords` 两个扁平数组,
+  words 按 sType 顺序拼接);neko/HL 双侧同步,DEFINE_PRIME8→10 / `_ARR`×4。
+- C++ 复用既有机制:267 结构体表查 `sizeof` → 逐 struct `vkGetPhysicalDeviceFeatures2` 验证 →
+  逐词裁剪(`ext feature sType=... clipped words: ...` 日志)→ 全零者不入链 → 链入 pNext 顶端。
+- **签名约定教训**:hxcpp prime sig = `"o"(window) + 参数逐个 + "o"(返回值)`——对照
+  `write_timestamp_2` 的 `oiiiiiiiiiiib` 可证。首次手写把返回值的 `o` 漏了
+  (`oiiiiioooo` ≠ 期望的 `oiiiiiooooo`),启动即弹 "does not have signature"。
+- **hxcpp 陷阱**:CFFI 返回的匿名对象若 `cast Array<VKExtensionProperties>` 再读 `.name`,
+  hxcpp 走类的 C++ 字段布局(读到 null)——必须保持 `Array<Dynamic>` 动态查找。
+- 主设备升级:`Main.createRenderer` 现在用 `createDeviceWithFeatures(全量 feature id +
+  extFeatureSTypes/Words)` 创建**特性全量**设备(探测 EDS3 → 报告扩展 + 特性词就请求),
+  所有检查从此在合法启用特性的设备上运行。
+- 新检查:`extFeatureChain`(记录 `vkCmdSetSampleMaskEXT`,仅在扩展真被启用时运行)、
+  `barrier2HighBits`(stage mask 位 32 = `VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR`,
+  验证 high/low 编码穿透 CFFI)。
+
+**B6 64 位掩码**:`pipelineBarrier2` / `pipelineBarrierImage2` 四个掩码参数 Int→Int64
+(high/low 对走既有扁平列表通道,CFFI 签名不变);`writeTimestamp2`/DependencyInfo 系此前已是 64 位,
+至此 **synchronization2 全家不再有 32 位截断**。
+
+| 端 | 结果 |
+|---|---|
+| Windows(1.4,EDS3 rev.2 可用) | 42 PASS / 0 FAIL;EDS3 请求 32 词 → `extFeatureChain PASS` + `barrier2HighBits PASS` |
+| MuMu(kona 1.3,无 EDS3) | 37 PASS / 0 FAIL(诚实 SKIP);`barrier2HighBits PASS`;SUMMARY frames=1633 status=PASS |
+
+**B 档剩余**:扩展命令 108 条(87 嵌套二级数组 / 16 字节缓冲 / 少量超限,需生成器通道扩展)、
+EDS2/3+shader object 39 条(生成器批次)。C 档(OpenFL/Flixel 接入 VulkanRenderer2D)另立专项。
+
+### 2026-10-31(终):**B 档收官 —— 批 24(SDK shader object)+ 批 25(超限 4 条)+ EDS2/3 特性链与录制,双端全绿**
+
+**B 档最终对账**(§3.5 梯队表已过时,按 vk.xml 实测):
+
+| 梯队 | 结论 |
+|---|---|
+| 扩展特性链(B5) | ✅ id 57–77 + 按 sType 请求任意 EXT 特性结构(EDS2/3 经此通道请求) |
+| EDS2 | **100%**(3 条与 core 1.3 同名,批 12 已实现;其余经批 17/18) |
+| EDS3 | **100%**(31/31,含 sampleMask;批 17/18) |
+| shader_object | 37/54 已实现;新增批 24 两条(create + binary round-trip);15 条缺失为 core 同名别名 |
+| 64 位掩码(B6) | ✅ synchronization2 全家无截断 |
+| 超限 4 条 | ✅ 批 25 打包契约(mesh indirect count EXT/NV + TraceRaysNV + BuildAccelerationStructureNV) |
+| RT/微图/合作向量族 64 条 | **已验证的边界**:ppGeometries 指针到指针数组 + DeviceOrHostAddress 联合,且 RT/micromap/cooperative-vector 硬件在全部验证平台(GTX 750 Ti / kona)均不存在——实现而无任何运行期验证可能,与"验证完整"要求矛盾,按项目纪律记为已验证边界 |
+
+**批 24**(手写):`vkCreateShadersEXT`(每 shader 一个 haxe.io.Bytes + 入口名 + layout/pcRange 扁平切片,出参 [count,(low,high)...]) + `vkGetShaderBinaryDataEXT`(两段式查询返回 [size,bytes...])。验证:参数逐字段回读正确(stage/codeType/codeSize/name)、SPIR-V 经 spirv-val 验证、PFN 可用;**Maxwell 驱动对合法 SPIR-V 返回 COMPILATION_FAILED**(shader object 的 SPIR-V 路径在老 GPU 上疑似半实现)→ 诚实 SKIP;其余错误仍 FAIL。
+
+**批 25**(手写):4 条超限命令的打包契约(packed 扁平列表绕 DEFINE_PRIME16 上限),含驱动签名修正:
+TraceRaysNV 实为 **15 参(raygen 组无 stride)**,BuildAccelerationStructureNV 需 **scratch/scratchOffset** 9 参。
+
+**EDS2/3 特性链**:Main 探测 EDS2/EDS3 扩展+特性词 → ext chain 请求 → `extendedDynamicState23` 检查
+在桌面真实录制 **12 个 EXT setter**(setDepthClampEnableEXT/setPolygonModeEXT/setRasterizationSamplesEXT/
+setAlphaTo*EnableEXT/setLogicOpEnableEXT/setLogicOpEXT/setTessellationDomainOriginEXT/setProvokingVertexModeEXT/
+setLineRasterizationModeEXT/setDepthClipNegativeOneToOneEXT/setPatchControlPointsEXT——VKCommandBuffer 新增 12 封装)。
+MuMu(kona 无这些扩展)诚实 SKIP。
+
+**坑位新增**:hxcpp prime sig = window "o" + 参数 + 返回值 "o";CFFI 匿名对象必须 `Array<Dynamic)` 读取;
+`#if android/#else` 双分支 var 声明会被 vk_haxecheck 当重复;`val_array_i` 才是 neko 数组读法(无 val_array_ptr);
+批 25 的 PFN 参数个数必须逐条与 vulkan_core.h 对账(TraceRaysNV 15/BuildAS 9)。
+
+| 端 | 结果 |
+|---|---|
+| Windows(1.4,EDS2/3 rev 可用) | **43 PASS / 0 FAIL**(1200+ 帧压力无失败) |
+| MuMu(kona 1.3) | **37 PASS / 0 FAIL**,**SMOKE SUMMARY seconds=30 frames=1790 status=PASS**(VM 存活) |
+| 静态门禁 | encoding/callsites/haxecheck/ffi_side/validate 全 0 |
+
+### 2026-10-31(终 2):**C 档第一期 —— Vulkan2DRenderer 批渲染核心 + OpenFL 显示列表接入,双端验证**
+
+**OpenFL 9.5.2 渲染器架构盘点**:`Stage.__createRenderer()` 按 `window.context.type` 分发;
+显示列表渲染器(OpenGLRenderer)包的是 **Context3D(Stage3D 抽象)**——Vulkan 完整等价物需要
+AGAL→SPIR-V 翻译(数月工程)。因此 C 档分期:C1 = Lime 侧 2D 批渲染核心 + OpenFL Bitmap 层接入(本轮);
+C2 = Context3D-over-Vulkan / AGAL(远期)。
+
+**C1a:`lime.graphics.vulkan.Vulkan2DRenderer`**(生产化批渲染核心,+ Vulkan2DTexture/Quad):
+
+- 自管 instance/surface/device/swapchain(`Vulkan2DRenderer.create(context)` 一行接入,复用全部
+  已验证模式:帧 fence、轮转信号量、OUT_OF_DATE 重建、staging 上传);
+- **CPU 侧正交变换**:四边形展开时直接写入 NDC(每帧重录,无 UBO 依赖——UBO 路径在无验证层时
+  出现驱动级怪象,决策绕过并记录);纹理批渲染(SRC_ALPHA 混合、NEAREST/LINEAR、绘制顺序即叠放序);
+- `renderToBytes(w,h,clear,quads)`:离屏 R8G8B8A8 目标 + 拷贝回读(验证路径,亦是未来
+  ShaderFilter 管线的基座);
+- 顶点布局 = smoke 验证过的 32B 全 float(pos2f+uv2f+color4f),纹理切换分批、drawIndexed firstIndex
+  分段;着色器 SPIR-V 内嵌(Vulkan2DShaders.hx),零资产依赖。
+
+**调试验(全部真机数据定位,已记入记忆)**:SOA/交错顶点序错位、NDC y 方向、描述符集布局缺 UBO
+绑定、viewport/scissor 未设、离屏管线跨 render pass 不兼容、`#if debug` 吞诊断——每步都有读回/顶点
+回读/UBO 回读的实证。
+
+**C1b:OpenFL 接入**(openfl dev 化至 `D:\openfl-dev`):
+
+- `openfl/display/VulkanRenderer.hx`:`DisplayObjectRenderer` 子类,覆盖 **Bitmap + 容器递归**
+  (BitmapData→纹理缓存 + `image.version` 脏跟踪重建;四角经世界矩阵变换;worldAlpha tint);
+  Shape/TextField/Tilemap 为增量工作;
+- `Stage.__createRenderer` 增加 `case VULKAN`(`window.context.vulkan` → VulkanRenderer);
+- 验证:`tests/vulkan-openfl`(原版 OpenFL 显示列表 + `<window renderer="vulkan" />`,32 个旋转
+  Bitmap)→ **301 帧 renderOk=true status=PASS,干净退出**;
+- Haxe 坑位:跨类私字段必须 `@:access(目标类)`(仅当通过该类型引用访问才生效——先用
+  `var displayObject:DisplayObject = cast object` 再访问);`BitmapData.image.data` 是
+  lime.utils.UInt8Array,需 `cast` 为 Bytes;`DisplayObjectRenderer.__renderDrawable` 不是
+  可覆写方法(OpenGLRenderer 的同名方法是自有)。
+
+| 验证 | 结果 |
+|---|---|
+| Windows `tests/vulkan-2d` | offscreenReadback 像素级断言 PASS + 300 帧动画 PASS(128 sprite 批渲染) |
+| MuMu `tests/vulkan-2d` | **SMOKE SUMMARY frames=300 verified=true status=PASS**(1080x1920,VM 存活,干净退出) |
+| Windows `tests/vulkan-openfl` | 原版 OpenFL 显示列表 Vulkan 渲染 **301 帧 PASS** |
+
+**C2 待办**:DisplayObjectRenderer 全类型覆盖(Shape/TextField/Tilemap)、BlendMode 全集、
+ShaderFilter(基于 renderToBytes 管线)、纹理图集与子矩形、Context3D-over-Vulkan(AGAL)。
+
+### C1c:Psych-Online-CNVE-NEO 真实环境接入(OpenFL 9.6.0-dev 自带 VulkanRenderer)
+
+用户实际使用的 OpenFL 是项目内 `.haxelib/openfl/9,6,0-dev`(Psych mod 定制版,自带 4185 行
+VulkanRenderer,跑在 lime C++ VKRenderer 之上;依赖 mod 侧 `vulkan/` 包:EmbeddedShaders、
+ModFilterPipeline、ModShaderPipeline、AgalSpirv、GlslSpirv、glvk/*,以及 foxlite 的 VKRHI)。
+
+smoke 工程 `D:\Psych-Online-CNVE-NEO\vulkan-smoke-flixel`:flixel 6.2.0 + foxlite + renderer="vulkan",
+mod 依赖拷入 `Source/vulkan/`,`Source/openfl/` 覆盖 VulkanContext3D/Program3D/FPS。
+32 个 FlxSprite,6 秒自退。
+
+修复链:haxelib 内 VulkanContext3D backdrop 结构缺 `width/height/x/y` 键;foxlite haxelib 未声明;
+FlxGame 构造参数(6.2.0 为 60,60,true,false);**gl_stats 必须定义**(mod 的 Stage.hx 把
+`Context3DStats.resetDrawCalls()` 改为无条件调用,顶部 import 却仍挂在 `#if gl_stats` 下)。
+
+**ndll 同步教训**:64 位 ndll 在 `ndll/Windows64/`(`Windows/` 是 32 位);smoke bin 里的
+lime.ndll(11,299,328B)与 Psych haxelib `9,1,0-alpha/ndll/Windows64/` 完全一致——那是 10/16 的旧版,
+不含签名修复(0 个 lime_vk_ prime 可用 strings 验证)。拷入 10/31 签名修复版(11,336,192B)后
+桌面一次通过。
+
+**dev 指向约定(本机 haxelib 4.1.1)**:dev 指针是**库层级** `.haxelib/lime/.dev`(内容为路径),
+不是版本子目录里的 `.dev`(写了无效)。已指向 `D:\Lime-8.4.0-preview`,单一来源、零漂移。
+
+| 验证 | 结果 |
+|---|---|
+| Windows `vulkan-smoke-flixel`(上游拷贝+旧ndll修复后) | **[flixel-vk] SMOKE SUMMARY frames=359 sprites=32 status=PASS** |
+| Windows `vulkan-smoke-flixel`(lime dev 指向 fork 全量重建) | **[flixel-vk] SMOKE SUMMARY frames=361 sprites=32 status=PASS**,OpenFL 9.6.0-dev 对 fork src 零 API 缺口 |

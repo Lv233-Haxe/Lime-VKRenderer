@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<meta title="Lime Vulkan 2D" package="org.openfl.lime.vulkan2d" version="1.0.0" company="OpenFL" />
+	<app main="Main" path="Export" file="LimeVulkan2D" />
+
+	<source path="Source" />
+
+	<haxelib name="lime" />
+
+	<window width="800" height="600" fps="60" background="#101018" renderer="vulkan" />
+
+</project>
